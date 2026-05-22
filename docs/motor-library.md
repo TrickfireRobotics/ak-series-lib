@@ -112,26 +112,40 @@ MIT mode canframes are meant to be extremely compact, you are meant to send comm
 
 And then from there the rest of the can frame structure looks like so.
 
-> [!CAN send frame]
+> [CAN send frame]
 > `Data[0]` Motor position << 8 (Motor position high bit)
+>
 > `Data[1]` Motor position (Motor position low bit)
+>
 > `Data[2]` Motor speed << 8 (Motor speed high)
+>
 > `Data[3]` Motor speed low in bits 7->4 in KP value high in bits 3->0
+>
 > `Data[4]` KP value (KP value low byte)
+>
 > `Data[5]` KD value high
+>
 > `Data[6]` KD value low in bytes 7->4 and current value high in bits 3->0
+>
 > `Data[7]` Current value low
 
 Motor position is an `int16` every other data value is an `int12` in MIT mode.
 
-> [!CAN response frame]
+> [ CAN response frame]
 > `Data[0]` Drive ID number (Motor can ID)
+>
 > `Data[1]` Motor position high
+>
 > `Data[2]` Motor Position low
+>
 > `Data[3]` Motor speed high
+>
 > `Data[4]` Motor speed low from bits 7->4 and Current high bits 3->0
+>
 > `Data[5]` Current low
+>
 > `Data[6]` Motor temperaturew
+>
 > `Data[7]` Motor error byte
 
 We control the motor by sending the `send` frame and filling out the specific values, if we want to use this mode we should consider the way we design the controller, `in MIT mode the CAN response frames continuously they are not a send and response thing so we should keep that in mind for what we decide in the future.`
