@@ -112,7 +112,8 @@ MIT mode canframes are meant to be extremely compact, you are meant to send comm
 
 And then from there the rest of the can frame structure looks like so.
 
-> [CAN send frame]
+> [!CAN send frame]
+>
 > `Data[0]` Motor position << 8 (Motor position high bit)
 >
 > `Data[1]` Motor position (Motor position low bit)
@@ -131,7 +132,7 @@ And then from there the rest of the can frame structure looks like so.
 
 Motor position is an `int16` every other data value is an `int12` in MIT mode.
 
-> [ CAN response frame]
+> [!CAN response frame]
 > `Data[0]` Drive ID number (Motor can ID)
 >
 > `Data[1]` Motor position high
