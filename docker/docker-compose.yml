@@ -1,0 +1,65 @@
+# --------------------------------------------------------------------------------------------
+# ak-series-lib container services
+#
+#   sim   - interactive runtime shell (existing simulation entrypoint)
+#   test  - one-shot build + ctest run against a virtual CAN interface (vcan_test)
+#   dev   - interactive shell with the extra dev tooling (ruff, shfmt) layered on
+#
+# vcan requires the vcan kernel module on the host. The container loads it via
+# `sudo modprobe vcan`, which needs --privileged + NET_ADMIN to create the link.
+# --------------------------------------------------------------------------------------------
+
+x-ak-base: &ak-base
+  image: ak-series:latest
+  user: trickfire
+  working_dir: /home/trickfire/ak-series
+  volumes:
+    - ..:/home/trickfire/ak-series
+  environment:
+    TZ: ${TZ:-UTC}
+  privileged: true
+  cap_add:
+    - NET_ADMIN
+    - SYS_MODULE
+
+services:
+  sim:
+    <<: *ak-base
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: runtime
+    container_name: ak-series
+    stdin_open: true
+    tty: true
+
+  test:
+    <<: *ak-base
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: test
+    image: ak-series:test
+    container_name: ak-series-test
+    command:
+      - bash
+      - -lc
+      - |
+        set -e
+        sudo modprobe vcan
+        cmake -S . -B build -G Ninja \
+          -DBUILD_TESTING=ON \
+          -DSETUP_TEST_IFNAME=ON
+        cmake --build build
+        ctest --test-dir build --output-on-failure
+
+  dev:
+    <<: *ak-base
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: dev
+    image: ak-series:dev
+    container_name: ak-series-dev
+    stdin_open: true
+    tty: true

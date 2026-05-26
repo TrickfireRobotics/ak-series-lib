@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.23)
 
-project(AK10 LANGUAGES CXX)
+project(ak_series LANGUAGES CXX)
+
+option(SETUP_TEST_IFNAME "Set-up the test VCAN interface automatically" OFF)
+option(PYTHON_BINDINGS "Build python bindings" OFF)
+option(BUILD_TESTING "Builds test folder, only use for testing" OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
   message(FATAL_ERROR "SocketCAN is Linux-only; this project cannot be built on ${CMAKE_SYSTEM_NAME}.")
@@ -11,21 +16,62 @@ endif()
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SocketCAN REQUIRED IMPORTED_TARGET libsocketcan)
 
-add_library(AK10-lib STATIC)
-add_library(AK10::AK10-lib ALIAS AK10-lib)
+add_library(ak_series_lib STATIC)
+add_library(ak_series::ak_series_lib ALIAS ak_series_lib)
 
-target_sources(AK10-lib
+target_sources(ak_series_lib
   PRIVATE
     # src/*.cpp
 )
 
-target_compile_features(AK10-lib PUBLIC cxx_std_17)
+target_compile_features(ak_series_lib PUBLIC cxx_std_17)
 
-target_include_directories(AK10-lib
+target_include_directories(ak_series_lib
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(AK10-lib PUBLIC PkgConfig::SocketCAN)
+install(DIRECTORY include/
+  DESTINATION include/
+)
+install(TARGETS ak_series 
+  EXPORT ${PROJECT_NAME}Targets
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+)
+
+
+if (BUILD_TESTING)
+  #Lets us define what happens and how tests are run
+  enable_testing()
+	find_package(GTest REQUIRED)
+  include(GoogleTest)
+	add_executable(run_tests
+	  # Add testing files here once populated
+    tests/run_tests.cpp
+	)
+	set(AK_SERIES_TESTS ak_series GTest)
+	target_link_libraries(run_tests PUBLIC ${AK_SERIES_TESTS})
+  gtest_discover_tests(run_tests
+    TEST_SUFFIX .noargs
+    TEST_LIST noArgsTests
+  )
+
+  set_tests_properties(${noArgsTests} PROPERTIES TIMEOUT 10)
+
+	if (SETUP_TEST_IFNAME)
+	  set(VCAN_IFNAME "vcan_test")
+	endif()
+
+  target_compile_features(run_tests PUBLIC
+    cxx_std_17
+  )
+
+endif()
+
+
+target_link_libraries(ak_series_lib PUBLIC PkgConfig::SocketCAN)
+
 

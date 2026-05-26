@@ -1,0 +1,3 @@
+#Defines this as a discoverable package
+include(CMakeFindDependencyMacro)
+include(${CMAKE_CURRENT_LIST_DIR}@PROJECT_NAME@Targets.cmake)

@@ -1,0 +1,36 @@
+{
+  "name": "ak-series-lib dev",
+  "dockerComposeFile": ["../docker/docker-compose.yml"],
+  "service": "dev",
+  "workspaceFolder": "/home/trickfire/ak-series",
+  "remoteUser": "trickfire",
+  "shutdownAction": "stopCompose",
+  "runServices": ["dev"],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "twxs.cmake",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "xaver.clang-format",
+        "charliermarsh.ruff",
+        "foxundermoon.shell-format",
+        "tamasfe.even-better-toml"
+      ],
+      "settings": {
+        "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+        "C_Cpp.default.cppStandard": "c++17",
+        "cmake.buildDirectory": "${workspaceFolder}/build",
+        "cmake.generator": "Ninja",
+        "cmake.configureSettings": {
+          "BUILD_TESTING": "ON"
+        },
+        "editor.formatOnSave": true,
+        "[cpp]": {
+          "editor.defaultFormatter": "xaver.clang-format"
+        }
+      }
+    }
+  }
+}
