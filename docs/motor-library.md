@@ -100,6 +100,9 @@ To enable servo mode we have to use their "proprietary" motor firmware version.
 > 2.  Navigate to the **Mode Switch** tab on the main menu.
 > 3.  At the bottom right of this screen, click the **"Servo App"** button to command the driver board to enter Servo mode.
 
+> [!Important]
+> Servo mode has a specific configuration, where in the firmware we can configure how often it sends its current position (between 0 and 500)
+
 ## MIT mode
 
 MIT mode is much similar, but the CAN frames are meant to be used in different way. MIT mode is designed to be much simpler and requires a few can frames to be sent to enable MIT mode. MIT mode packs the bytes super tight and only uses one can frame. Here is the breakdown. To enable MIT mode you need to send the address as the first 11 bytes and then send these following CAN frames.
@@ -108,45 +111,30 @@ MIT mode is much similar, but the CAN frames are meant to be used in different w
 - **Exit Motor Control Mode:** Send the data payload `{ADDRESS_BIT_HIGH, ADDRESS_BIT_LOW} {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFD}`
 - **Set Current Position to 0:** Send the data payload `{ADDRESS_BIT_HIGH, ADDRESS_BIT_LOW} 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE}`
 
-MIT mode canframes are meant to be extremely compact, you are meant to send commands to it hundreds of times per second down the CAN line. The motors reply with their current information 500 times per second and are meant to be used in highly optimized situations. We can choose to use this in our Drivebase design but this is a discussion for the future.
+MIT mode follows a strict send and reply mode. When we send a Can frame we are immediately should expect a reply from the motor with its current position.
 
 And then from there the rest of the can frame structure looks like so.
 
 > [!CAN send frame]
->
 > `Data[0]` Motor position << 8 (Motor position high bit)
->
 > `Data[1]` Motor position (Motor position low bit)
->
 > `Data[2]` Motor speed << 8 (Motor speed high)
->
 > `Data[3]` Motor speed low in bits 7->4 in KP value high in bits 3->0
->
 > `Data[4]` KP value (KP value low byte)
->
 > `Data[5]` KD value high
->
 > `Data[6]` KD value low in bytes 7->4 and current value high in bits 3->0
->
 > `Data[7]` Current value low
 
 Motor position is an `int16` every other data value is an `int12` in MIT mode.
 
 > [!CAN response frame]
 > `Data[0]` Drive ID number (Motor can ID)
->
 > `Data[1]` Motor position high
->
 > `Data[2]` Motor Position low
->
 > `Data[3]` Motor speed high
->
 > `Data[4]` Motor speed low from bits 7->4 and Current high bits 3->0
->
 > `Data[5]` Current low
->
 > `Data[6]` Motor temperaturew
->
 > `Data[7]` Motor error byte
 
 We control the motor by sending the `send` frame and filling out the specific values, if we want to use this mode we should consider the way we design the controller, `in MIT mode the CAN response frames continuously they are not a send and response thing so we should keep that in mind for what we decide in the future.`
@@ -157,7 +145,3 @@ We should aim to keep each part of the implementation as seperate as possible, s
 working on the library.
 
 Additionally I aim to have this be treated as a ROS package, which means defining a package.xml and following the documentation for ROS's build system `colcon` to make this much easier to pull into ROS packages.
-
-# Future considerations (for the drivebase node)
-
-We are going to be developing for 2 separate communication modes, so we need to be able to differentiate between. However some things to keep in mind for our future drivebase implementation is MIT mode can be turned on using some can frames we can control, Servo mode has a more convoluted setup that may cause issues in the future.

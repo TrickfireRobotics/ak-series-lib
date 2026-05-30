@@ -39,6 +39,7 @@ RUN apt-get update && \
         curl \
         ca-certificates \
         clangd \
+        clang-format \
         git && \
     rm -rf /var/lib/apt/lists/*
 
