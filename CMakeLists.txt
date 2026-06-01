@@ -21,7 +21,8 @@ add_library(ak_series::ak_series_lib ALIAS ak_series_lib)
 
 target_sources(ak_series_lib
   PRIVATE
-    # src/*.cpp
+    src/can/frame.cpp
+    src/can/Servo_frame.cpp
 )
 
 target_compile_features(ak_series_lib PUBLIC cxx_std_17)
@@ -35,7 +36,7 @@ target_include_directories(ak_series_lib
 install(DIRECTORY include/
   DESTINATION include/
 )
-install(TARGETS ak_series 
+install(TARGETS ak_series_lib
   EXPORT ${PROJECT_NAME}Targets
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
@@ -52,7 +53,7 @@ if (BUILD_TESTING)
 	  # Add testing files here once populated
     tests/run_tests.cpp
 	)
-	set(AK_SERIES_TESTS ak_series GTest)
+	set(AK_SERIES_TESTS ak_series_lib GTest::gtest_main)
 	target_link_libraries(run_tests PUBLIC ${AK_SERIES_TESTS})
   gtest_discover_tests(run_tests
     TEST_SUFFIX .noargs
