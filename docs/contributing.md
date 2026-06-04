@@ -1,6 +1,6 @@
 # Contributing
 
-Firstly thanks for contributing, here is the main dev workflow of the repo.
+Firstly thanks for contributing, here is the main dev workflow of the repo. Make sure to consult all of the documentation within this folder, there is a breif overview of what each canframe does and what each of the functionality on the motors looks like. The PDF inside this folder is `CubeMars` provided for the motor controller boards, this is the protocol we are writing code for, make sure you consult against this code for that information
 
 ## Workflow
 
