@@ -21,7 +21,7 @@ add_library(ak_series::ak_series_lib ALIAS ak_series_lib)
 
 target_sources(ak_series_lib
   PRIVATE
-    src/can/frame.cpp
+  src/can/Mit_frame.cpp
     src/can/Servo_frame.cpp
 )
 
