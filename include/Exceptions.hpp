@@ -13,7 +13,7 @@ extern "C" {
 
 #include <stdexcept>
 
-enum class ServoErrorCode {
+enum class ErrorCode {
   NoFault = 0,
   OverTemperature,
   OverCurrent,
@@ -24,23 +24,23 @@ enum class ServoErrorCode {
   MotorStall,
 };
 
-static const char *errCodeToStr(ServoErrorCode s) {
+static const char *errCodeToStr(ErrorCode s) {
   switch (s) {
-  case (ServoErrorCode::NoFault):
+  case (ErrorCode::NoFault):
     return "No fault";
-  case (ServoErrorCode::OverTemperature):
+  case (ErrorCode::OverTemperature):
     return "Over Temperature";
-  case (ServoErrorCode::OverCurrent):
+  case (ErrorCode::OverCurrent):
     return "Over current";
-  case (ServoErrorCode::OverVoltage):
+  case (ErrorCode::OverVoltage):
     return "Over voltage";
-  case (ServoErrorCode::UnderVoltage):
+  case (ErrorCode::UnderVoltage):
     return "Under voltage";
-  case (ServoErrorCode::EncoderFault):
+  case (ErrorCode::EncoderFault):
     return "Encoder fault";
-  case (ServoErrorCode::MOSFETOverTemp):
+  case (ErrorCode::MOSFETOverTemp):
     return "Mosfet over temperature";
-  case (ServoErrorCode::MotorStall):
+  case (ErrorCode::MotorStall):
     return "Motor stall";
   };
 }
@@ -57,14 +57,14 @@ public:
 
 class ServoException : public std::exception {
 private:
-  ServoErrorCode code{};
+  ErrorCode code{};
   std::string desc{};
 
 public:
-  ServoException(const std::string err, ServoErrorCode s = ServoErrorCode::NoFault)
+  ServoException(const std::string err, ErrorCode s = ErrorCode::NoFault)
       : std::exception(), desc{err}, code{s} {};
   const char *what() {
-    if (code == ServoErrorCode::NoFault) {
+    if (code == ErrorCode::NoFault) {
       return desc.c_str();
     } else {
       desc += ": ";
