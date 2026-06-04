@@ -34,7 +34,7 @@ class ServoFrame : public Frame {
 private:
   ServoFrameID m_servo_id;
   ServoFrame(canid_t id, ServoFrameID frame_id);
-  int32_t m_frame_header{};
+  uint32_t m_frame_header{};
   uint8_t get_id();
   bool is0x29();
 
@@ -56,7 +56,7 @@ public:
   int32_t getSpeed();
   float getCurrent();
   int8_t getTemperature();
-  ServoErrorCode getErrorCode();
+  ErrorCode getErrorCode();
 };
 
 #endif

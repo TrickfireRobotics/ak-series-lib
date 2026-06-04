@@ -1,6 +1,7 @@
 #include "can/Servo_frame.hpp"
 #include <charconv>
 #include <functional>
+#include <linux/can.h>
 #include <stdexcept>
 #include <string.h>
 
@@ -10,6 +11,15 @@ static std::string invalidCallStr(uint8_t id) {
   std::string desc{"Invalid call called get_current on a frame with id 0x29 this has id of "};
   desc += buffer;
   return desc;
+}
+
+ServoFrame::operator can_frame() {
+  can_frame f{};
+  f.can_id = static_cast<canid_t>(m_frame_header);
+  f.can_id = f.can_id | CAN_EFF_FLAG;
+  f.len8_dlc = 8;
+  std::copy(&f.data[0], &f.data[7], m_data);
+  return f;
 }
 
 ServoFrame::ServoFrame(canid_t id, ServoFrameID frame_id) : Frame(id), m_servo_id{frame_id} {
@@ -220,11 +230,11 @@ int8_t ServoFrame::getTemperature() {
   return temp;
 }
 
-ServoErrorCode ServoFrame::getErrorCode() {
+ErrorCode ServoFrame::getErrorCode() {
   if (!is0x29()) {
     throw aks::invalid_call(invalidCallStr(get_id()));
   }
 
-  ServoErrorCode r = static_cast<ServoErrorCode>(m_data[7]);
+  ErrorCode r = static_cast<ErrorCode>(m_data[7]);
   return r;
 }
