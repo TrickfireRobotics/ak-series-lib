@@ -10,8 +10,6 @@ Additional Information (if appropriate):
 
 ## Testing
 
-### If testing wasn't done explain why
-
 <!-- Please describe how you verified your results. -->
 <!-- Provide instructions so others can reproduce. -->
 
