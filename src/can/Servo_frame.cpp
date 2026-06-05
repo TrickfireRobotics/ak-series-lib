@@ -33,7 +33,8 @@ static std::string invalidCallStr(uint8_t id) {
 }
 
 static bool check_is_0x29(uint32_t frame_header) {
-  return (static_cast<uint8_t>(frame_header >> 16) == kServoModeFeedbackId);
+  // Command ID occupies bits [15:8] per protocol (stored as << 8)
+  return (static_cast<uint8_t>((frame_header >> 8) & 0xFF) == kServoModeFeedbackId);
 }
 
 ServoFrame::operator can_frame() const {
@@ -55,13 +56,12 @@ ServoMsgFrame::operator can_frame() const {
 }
 
 ServoFrame::ServoFrame(canid_t id, ServoFrameID frame_id) : Frame(id), m_servo_id{frame_id} {
-  m_frame_header = static_cast<uint8_t>(m_servo_id) << 8;
-  m_frame_header += static_cast<int32_t>(id);
+  // Pack command (frame id) into bits [15:8] and motor id into [7:0]
+  m_frame_header = (static_cast<uint32_t>(m_servo_id) << 8) | (static_cast<uint32_t>(id) & 0xFFu);
 }
 
 ServoMsgFrame::ServoMsgFrame(canid_t id, ServoFrameID frame_id) : Frame(id), m_servo_id{frame_id} {
-  m_frame_header = static_cast<uint8_t>(m_servo_id) << 8;
-  m_frame_header += static_cast<int32_t>(id);
+  m_frame_header = (static_cast<uint32_t>(m_servo_id) << 8) | (static_cast<uint32_t>(id) & 0xFFu);
   if (!check_is_0x29(m_frame_header)) {
     throw std::invalid_argument("Invalid frame header for ServoMsgFrame");
   }
@@ -212,9 +212,9 @@ ServoFrame ServoFrame::setPositionAndVelo(canid_t can_id, int32_t position, int1
   return f;
 }
 
-uint8_t ServoFrame::get_id() { return static_cast<uint8_t>(m_frame_header >> 16); }
+uint8_t ServoFrame::get_id() { return static_cast<uint8_t>(m_frame_header & 0xFFu); }
 
-uint8_t ServoMsgFrame::get_id() { return static_cast<uint8_t>(m_frame_header >> 16); }
+uint8_t ServoMsgFrame::get_id() { return static_cast<uint8_t>(m_frame_header & 0xFFu); }
 
 bool ServoFrame::is0x29() { return check_is_0x29(m_frame_header); }
 
