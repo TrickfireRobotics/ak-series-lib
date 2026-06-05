@@ -23,9 +23,12 @@ constexpr int32_t kSpeedDecodeScale = 10;
 
 static std::string invalidCallStr(uint8_t id) {
   char buffer[10];
-  std::to_chars(&buffer[0], &buffer[9], id);
+  auto result = std::to_chars(buffer, buffer + sizeof(buffer), id);
+  if (result.ec != std::errc{}) {
+    throw std::runtime_error("Failed to format servo id");
+  }
   std::string desc{"Invalid call called get_current on a frame with id 0x29 this has id of "};
-  desc += buffer;
+  desc.append(buffer, result.ptr);
   return desc;
 }
 
