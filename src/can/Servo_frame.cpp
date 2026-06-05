@@ -17,21 +17,21 @@ static bool check_is_0x29(uint32_t frame_header) {
   return (static_cast<uint8_t>(frame_header >> 16) == 0x29);
 }
 
-ServoFrame::operator can_frame() {
+ServoFrame::operator can_frame() const {
   can_frame f{};
   f.can_id = static_cast<canid_t>(m_frame_header);
   f.can_id = f.can_id | CAN_EFF_FLAG;
   f.len8_dlc = 8;
-  std::copy(&f.data[0], &f.data[8], m_data.begin());
+  std::copy(m_data.begin(), m_data.end(), f.data);
   return f;
 }
 
-ServoMsgFrame::operator can_frame() {
+ServoMsgFrame::operator can_frame() const {
   can_frame f{};
   f.can_id = static_cast<canid_t>(m_frame_header);
   f.can_id = f.can_id | CAN_EFF_FLAG;
   f.len8_dlc = 8;
-  std::copy(&f.data[0], &f.data[8], m_data.begin());
+  std::copy(m_data.begin(), m_data.end(), f.data);
   return f;
 }
 
