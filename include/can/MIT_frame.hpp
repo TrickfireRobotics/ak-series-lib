@@ -38,11 +38,12 @@ private:
 
 public:
   MitRunSettings *mSettings{nullptr};
-  MitSendFrame() = delete;
   MitSendFrame(canid_t can_id, AkSeriesMotors motor, MitRunSettings *settings = nullptr)
       : Frame(can_id), mMotor{motor},
         mSettings{settings == nullptr ? new MitRunSettings : settings},
         mLims{motorRunLimits[static_cast<uint8_t>(mMotor)]} {}
+
+  MitSendFrame() = delete;
   explicit operator can_frame();
 };
 

@@ -30,25 +30,25 @@ enum class ServoFrameID : uint8_t {
   ServoModeFeedback = 0x29
 };
 
-class ServoFrame : public Frame {
+class ServoSendFrame : public Frame {
 private:
   ServoFrameID mServoID;
-  ServoFrame(canid_t id, ServoFrameID frame_id);
+  ServoSendFrame(canid_t id, ServoFrameID frame_id);
   uint32_t mFrameHeader{};
   uint8_t getId();
 
 public:
   // when we read, we implicitly assume that it will be a canframe we are pulling this from
-  ServoFrame(can_frame frame);
+  ServoSendFrame(can_frame frame);
   [[nodiscard]] explicit operator can_frame() const;
-  [[nodiscard]] static ServoFrame setDutyCycle(canid_t can_id, float dutyCycle);
-  [[nodiscard]] static ServoFrame setCurrentLoop(canid_t can_id, int32_t currentLoop);
-  [[nodiscard]] static ServoFrame setCurrentBrake(canid_t can_id, int32_t current);
-  [[nodiscard]] static ServoFrame setRPM(canid_t can_id, int32_t rpm);
-  [[nodiscard]] static ServoFrame setPosition(canid_t can_id, int32_t pos);
-  [[nodiscard]] static ServoFrame setOrigin(canid_t can_id, uint8_t origin_mode);
-  [[nodiscard]] static ServoFrame setPositionAndVelo(canid_t, int32_t position, int16_t speed,
-                                                     int16_t accel);
+  [[nodiscard]] static ServoSendFrame setDutyCycle(canid_t can_id, float dutyCycle);
+  [[nodiscard]] static ServoSendFrame setCurrentLoop(canid_t can_id, int32_t currentLoop);
+  [[nodiscard]] static ServoSendFrame setCurrentBrake(canid_t can_id, int32_t current);
+  [[nodiscard]] static ServoSendFrame setRPM(canid_t can_id, int32_t rpm);
+  [[nodiscard]] static ServoSendFrame setPosition(canid_t can_id, int32_t pos);
+  [[nodiscard]] static ServoSendFrame setOrigin(canid_t can_id, uint8_t origin_mode);
+  [[nodiscard]] static ServoSendFrame setPositionAndVelo(canid_t, int32_t position, int16_t speed,
+                                                         int16_t accel);
 };
 
 class ServoRecvFrame : public Frame {
