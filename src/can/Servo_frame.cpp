@@ -18,7 +18,7 @@ ServoFrame::operator can_frame() {
   f.can_id = static_cast<canid_t>(m_frame_header);
   f.can_id = f.can_id | CAN_EFF_FLAG;
   f.len8_dlc = 8;
-  std::copy(&f.data[0], &f.data[7], m_data);
+  std::copy(&f.data[0], &f.data[8], m_data.begin());
   return f;
 }
 
