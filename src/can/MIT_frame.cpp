@@ -37,13 +37,13 @@ MitSendFrame::operator can_frame() {
 }
 
 void MitSendFrame::padData() {
-  MotorRunLimits lims = motorRunLimits[static_cast<uint8_t>(mMotor)];
+  MotorRunLimits mLims = motorRunLimits[static_cast<uint8_t>(mMotor)];
 
-  uint16_t pos = float_to_uint(m_settings->position, -lims.pos, lims.pos, 16);
-  uint16_t speed = float_to_uint(m_settings->speed, -lims.speed, lims.speed, 12);
-  uint16_t current = float_to_uint(m_settings->current, 0, 60, 12);
-  uint16_t KP = float_to_uint(m_settings->KP, 0, lims.KPMax, 12);
-  uint16_t KD = float_to_uint(m_settings->KD, 0, lims.KDMax, 12);
+  uint16_t pos = float_to_uint(mSettings->position, -mLims.pos, mLims.pos, 16);
+  uint16_t speed = float_to_uint(mSettings->speed, -mLims.speed, mLims.speed, 12);
+  uint16_t current = float_to_uint(mSettings->current, -mLims.torque, mLims.torque, 12);
+  uint16_t KP = float_to_uint(mSettings->KP, 0, mLims.KPMax, 12);
+  uint16_t KD = float_to_uint(mSettings->KD, 0, mLims.KDMax, 12);
   mData[0] = static_cast<uint8_t>(pos >> 8);
   // Position low 8 bytes
   mData[1] = static_cast<uint8_t>(pos);
@@ -56,13 +56,28 @@ void MitSendFrame::padData() {
   mData[7] = static_cast<uint8_t>(current >> 4);
 }
 
-MitRecvFrame::MitRecvFrame(const can_frame &frame) : Frame(frame.can_id) {
+MitRecvFrame::MitRecvFrame(const can_frame &frame, AkSeriesMotors motor)
+    : Frame(frame.can_id), mMotor{motor}, mLims{motorRunLimits[static_cast<uint8_t>(mMotor)]} {
   std::copy(&frame.data[0], &frame.data[7], mData);
 }
 
-// TODO implement
-uint8_t MitRecvFrame::getId() {}
-int32_t MitRecvFrame::getPosition() {}
-float MitRecvFrame::getCurrent() {}
-uint8_t MitRecvFrame::getTemperature() {}
-ErrorCode MitRecvFrame::getErrorCode() {}
+uint8_t MitRecvFrame::getId() { return mData[0]; }
+float MitRecvFrame::getPosition() {
+  int32_t pos{};
+  std::copy(mData.begin() + 1, mData.begin() + 4, &pos);
+  pos = pos >> 4;
+  pos += mData[4] & FIRST4BYTES;
+  float posReal = uint_to_float(pos, -mLims.pos, mLims.pos, 28);
+  return posReal;
+}
+
+float MitRecvFrame::getCurrent() {
+  uint16_t curr{};
+  curr += mData[4] & LAST4BYTES;
+  curr = curr << 8;
+  curr += mData[5];
+  float currReal = uint_to_float(curr, mLims.torque, mLims.torque, 12);
+  return currReal;
+}
+uint8_t MitRecvFrame::getTemperature() { return static_cast<int8_t>(mData[6]); }
+ErrorCode MitRecvFrame::getErrorCode() { return static_cast<ErrorCode>(mData[7]); }
