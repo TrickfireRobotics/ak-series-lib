@@ -30,7 +30,7 @@ ServoFrame::operator can_frame() const {
   f.can_id = static_cast<canid_t>(mFrameHeader);
   f.can_id = f.can_id | CAN_EFF_FLAG;
   f.len8_dlc = 8;
-  std::copy(m_data.begin(), m_data.end(), f.data);
+  std::copy(mData.begin(), mData.end(), f.data);
   return f;
 }
 
@@ -39,7 +39,7 @@ ServoRecvFrame::operator can_frame() const {
   f.can_id = static_cast<canid_t>(mFrameHeader);
   f.can_id = f.can_id | CAN_EFF_FLAG;
   f.len8_dlc = 8;
-  std::copy(m_data.begin(), m_data.end(), f.data);
+  std::copy(mData.begin(), mData.end(), f.data);
   return f;
 }
 
@@ -59,10 +59,10 @@ ServoFrame ServoFrame::setDutyCycle(canid_t can_id, float dutyCycle) {
   int32_t duty = static_cast<int32_t>(dutyCycle * kDutyScale);
   ServoFrame f(can_id, ServoFrameID::DutyCycleMode);
 
-  f.m_data[0] = static_cast<uint8_t>(duty >> 24);
-  f.m_data[1] = static_cast<uint8_t>(duty >> 16);
-  f.m_data[2] = static_cast<uint8_t>(duty >> 8);
-  f.m_data[3] = static_cast<uint8_t>(duty);
+  f.mData[0] = static_cast<uint8_t>(duty >> 24);
+  f.mData[1] = static_cast<uint8_t>(duty >> 16);
+  f.mData[2] = static_cast<uint8_t>(duty >> 8);
+  f.mData[3] = static_cast<uint8_t>(duty);
 
   return f;
 }
@@ -78,10 +78,10 @@ ServoFrame ServoFrame::setCurrentLoop(canid_t can_id, int32_t current) {
     current = current < -60000 ? -60000 : 60000;
   }
 
-  f.m_data[0] = static_cast<uint8_t>(current >> 24);
-  f.m_data[1] = static_cast<uint8_t>(current >> 16);
-  f.m_data[2] = static_cast<uint8_t>(current >> 8);
-  f.m_data[3] = static_cast<uint8_t>(current);
+  f.mData[0] = static_cast<uint8_t>(current >> 24);
+  f.mData[1] = static_cast<uint8_t>(current >> 16);
+  f.mData[2] = static_cast<uint8_t>(current >> 8);
+  f.mData[3] = static_cast<uint8_t>(current);
 
   return f;
 }
@@ -95,10 +95,10 @@ ServoFrame ServoFrame::setCurrentBrake(canid_t can_id, int32_t current) {
     current = current < 0 ? 0 : 60000;
   }
 
-  f.m_data[0] = static_cast<uint8_t>(current >> 24);
-  f.m_data[1] = static_cast<uint8_t>(current >> 16);
-  f.m_data[2] = static_cast<uint8_t>(current >> 8);
-  f.m_data[3] = static_cast<uint8_t>(current);
+  f.mData[0] = static_cast<uint8_t>(current >> 24);
+  f.mData[1] = static_cast<uint8_t>(current >> 16);
+  f.mData[2] = static_cast<uint8_t>(current >> 8);
+  f.mData[3] = static_cast<uint8_t>(current);
 
   return f;
 }
@@ -112,10 +112,10 @@ ServoFrame ServoFrame::setRPM(canid_t can_id, int32_t rpm) {
     rpm = rpm < -10000 ? -100000 : 100000;
   }
 
-  f.m_data[0] = static_cast<uint8_t>(rpm >> 24);
-  f.m_data[1] = static_cast<uint8_t>(rpm >> 16);
-  f.m_data[2] = static_cast<uint8_t>(rpm >> 8);
-  f.m_data[3] = static_cast<uint8_t>(rpm);
+  f.mData[0] = static_cast<uint8_t>(rpm >> 24);
+  f.mData[1] = static_cast<uint8_t>(rpm >> 16);
+  f.mData[2] = static_cast<uint8_t>(rpm >> 8);
+  f.mData[3] = static_cast<uint8_t>(rpm);
   return f;
 }
 
@@ -129,10 +129,10 @@ ServoFrame ServoFrame::setPosition(canid_t can_id, int32_t pos) {
                  pos);
   }
 
-  f.m_data[0] = static_cast<uint8_t>(pos >> 24);
-  f.m_data[1] = static_cast<uint8_t>(pos >> 16);
-  f.m_data[2] = static_cast<uint8_t>(pos >> 8);
-  f.m_data[3] = static_cast<uint8_t>(pos);
+  f.mData[0] = static_cast<uint8_t>(pos >> 24);
+  f.mData[1] = static_cast<uint8_t>(pos >> 16);
+  f.mData[2] = static_cast<uint8_t>(pos >> 8);
+  f.mData[3] = static_cast<uint8_t>(pos);
 
   return f;
 }
@@ -141,7 +141,7 @@ ServoFrame ServoFrame::setOrigin(canid_t can_id, uint8_t origin_mode) {
   ServoFrame f(can_id, ServoFrameID::SetOriginMode);
   if (origin_mode > 1) {
   }
-  f.m_data[0] = origin_mode;
+  f.mData[0] = origin_mode;
   return f;
 }
 
@@ -167,16 +167,16 @@ ServoFrame ServoFrame::setPositionAndVelo(canid_t can_id, int32_t position, int1
     accel = kAccelMin;
   }
 
-  f.m_data[0] = static_cast<uint8_t>(position >> 24);
-  f.m_data[1] = static_cast<uint8_t>(position >> 16);
-  f.m_data[2] = static_cast<uint8_t>(position >> 8);
-  f.m_data[3] = static_cast<uint8_t>(position);
+  f.mData[0] = static_cast<uint8_t>(position >> 24);
+  f.mData[1] = static_cast<uint8_t>(position >> 16);
+  f.mData[2] = static_cast<uint8_t>(position >> 8);
+  f.mData[3] = static_cast<uint8_t>(position);
 
-  f.m_data[4] = static_cast<uint8_t>(speed >> 8);
-  f.m_data[5] = static_cast<uint8_t>(speed);
+  f.mData[4] = static_cast<uint8_t>(speed >> 8);
+  f.mData[5] = static_cast<uint8_t>(speed);
 
-  f.m_data[6] = static_cast<uint8_t>(accel >> 8);
-  f.m_data[7] = static_cast<uint8_t>(accel);
+  f.mData[6] = static_cast<uint8_t>(accel >> 8);
+  f.mData[7] = static_cast<uint8_t>(accel);
 
   return f;
 }
@@ -187,7 +187,7 @@ uint8_t ServoRecvFrame::getId() { return static_cast<uint8_t>(mFrameHeader & 0xF
 
 float ServoRecvFrame::getPosition() {
   int16_t pos{};
-  std::copy(m_data.begin(), m_data.begin() + 2, &pos);
+  std::copy(mData.begin(), mData.begin() + 2, &pos);
   /*
    * Check ak-series PDF, protocol calls for this
    * I want values to reflect what they look like on the motors
@@ -202,7 +202,7 @@ float ServoRecvFrame::getPosition() {
 
 int32_t ServoRecvFrame::getSpeed() {
   int16_t speed{};
-  std::copy(m_data.begin() + 2, m_data.begin() + 4, &speed);
+  std::copy(mData.begin() + 2, mData.begin() + 4, &speed);
   int32_t speedReal{speed};
   speedReal *= 10;
   return speedReal;
@@ -210,18 +210,18 @@ int32_t ServoRecvFrame::getSpeed() {
 
 float ServoRecvFrame::getCurrent() {
   int16_t current{};
-  std::copy(m_data.begin() + 4, m_data.begin() + 6, &current);
+  std::copy(mData.begin() + 4, mData.begin() + 6, &current);
   float currentReal{static_cast<float>(current)};
   currentReal /= 100;
   return currentReal;
 }
 
 int8_t ServoRecvFrame::getTemperature() {
-  int8_t temp{static_cast<int8_t>(m_data[6])};
+  int8_t temp{static_cast<int8_t>(mData[6])};
   return temp;
 }
 
 ErrorCode ServoRecvFrame::getErrorCode() {
-  ErrorCode r = static_cast<ErrorCode>(m_data[7]);
+  ErrorCode r = static_cast<ErrorCode>(mData[7]);
   return r;
 }
