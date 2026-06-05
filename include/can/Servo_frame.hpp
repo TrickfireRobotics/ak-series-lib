@@ -59,4 +59,21 @@ public:
   ErrorCode getErrorCode();
 };
 
+class ServoMsgFrame : public Frame {
+private:
+  ServoFrameID m_servo_id;
+  ServoMsgFrame(canid_t id, ServoFrameID frame_id);
+  uint32_t m_frame_header{};
+  uint8_t get_id();
+
+public:
+  ServoMsgFrame(can_frame frame);
+  [[nodiscard]] explicit operator can_frame();
+  float getPosition();
+  int32_t getSpeed();
+  float getCurrent();
+  int8_t getTemperature();
+  ErrorCode getErrorCode();
+};
+
 #endif

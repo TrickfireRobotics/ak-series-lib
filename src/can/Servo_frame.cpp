@@ -13,7 +13,20 @@ static std::string invalidCallStr(uint8_t id) {
   return desc;
 }
 
+static bool check_is_0x29(uint32_t frame_header) {
+  return (static_cast<uint8_t>(frame_header >> 16) == 0x29);
+}
+
 ServoFrame::operator can_frame() {
+  can_frame f{};
+  f.can_id = static_cast<canid_t>(m_frame_header);
+  f.can_id = f.can_id | CAN_EFF_FLAG;
+  f.len8_dlc = 8;
+  std::copy(&f.data[0], &f.data[8], m_data.begin());
+  return f;
+}
+
+ServoMsgFrame::operator can_frame() {
   can_frame f{};
   f.can_id = static_cast<canid_t>(m_frame_header);
   f.can_id = f.can_id | CAN_EFF_FLAG;
@@ -25,6 +38,14 @@ ServoFrame::operator can_frame() {
 ServoFrame::ServoFrame(canid_t id, ServoFrameID frame_id) : Frame(id), m_servo_id{frame_id} {
   m_frame_header = static_cast<uint8_t>(m_servo_id) << 8;
   m_frame_header += static_cast<int32_t>(id);
+}
+
+ServoMsgFrame::ServoMsgFrame(canid_t id, ServoFrameID frame_id) : Frame(id), m_servo_id{frame_id} {
+  m_frame_header = static_cast<uint8_t>(m_servo_id) << 8;
+  m_frame_header += static_cast<int32_t>(id);
+  if (!check_is_0x29(m_frame_header)) {
+    throw std::invalid_argument("Invalid frame header for ServoMsgFrame");
+  }
 }
 
 ServoFrame ServoFrame::setDutyCycle(canid_t can_id, float dutyCycle) {
@@ -172,17 +193,11 @@ ServoFrame ServoFrame::setPositionAndVelo(canid_t can_id, int32_t position, int1
 
 uint8_t ServoFrame::get_id() { return static_cast<uint8_t>(m_frame_header >> 16); }
 
-bool ServoFrame::is0x29() {
-  if (get_id() == 0x29) {
-    return true;
-  }
-  return false;
-}
+uint8_t ServoMsgFrame::get_id() { return static_cast<uint8_t>(m_frame_header >> 16); }
 
-float ServoFrame::getPosition() {
-  if (!is0x29()) {
-  }
+bool ServoFrame::is0x29() { return check_is_0x29(m_frame_header); }
 
+float ServoMsgFrame::getPosition() {
   int16_t pos{};
   std::copy(m_data.begin(), m_data.begin() + 2, &pos);
   /*
@@ -197,11 +212,7 @@ float ServoFrame::getPosition() {
   return posreal;
 }
 
-int32_t ServoFrame::getSpeed() {
-  if (!is0x29()) {
-    throw aks::invalid_call(invalidCallStr(get_id()));
-  }
-
+int32_t ServoMsgFrame::getSpeed() {
   int16_t speed{};
   std::copy(m_data.begin() + 2, m_data.begin() + 4, &speed);
   int32_t speedreal{speed};
@@ -209,11 +220,7 @@ int32_t ServoFrame::getSpeed() {
   return speedreal;
 }
 
-float ServoFrame::getCurrent() {
-  if (!is0x29()) {
-    throw aks::invalid_call(invalidCallStr(get_id()));
-  }
-
+float ServoMsgFrame::getCurrent() {
   int16_t current{};
   std::copy(m_data.begin() + 4, m_data.begin() + 6, &current);
   float currentreal{static_cast<float>(current)};
@@ -221,20 +228,12 @@ float ServoFrame::getCurrent() {
   return currentreal;
 }
 
-int8_t ServoFrame::getTemperature() {
-  if (!is0x29()) {
-    throw aks::invalid_call(invalidCallStr(get_id()));
-  }
-
+int8_t ServoMsgFrame::getTemperature() {
   int8_t temp{static_cast<int8_t>(m_data[6])};
   return temp;
 }
 
-ErrorCode ServoFrame::getErrorCode() {
-  if (!is0x29()) {
-    throw aks::invalid_call(invalidCallStr(get_id()));
-  }
-
+ErrorCode ServoMsgFrame::getErrorCode() {
   ErrorCode r = static_cast<ErrorCode>(m_data[7]);
   return r;
 }
