@@ -35,13 +35,13 @@ private:
   ServoFrameID m_servo_id;
   ServoFrame(canid_t id, ServoFrameID frame_id);
   uint32_t m_frame_header{};
-  uint8_t get_id();
+  uint8_t getId();
   bool is0x29();
 
 public:
   // when we read, we implicitly assume that it will be a canframe we are pulling this from
   ServoFrame(can_frame frame);
-  [[nodiscard]] explicit operator can_frame();
+  [[nodiscard]] explicit operator can_frame() const;
   [[nodiscard]] static ServoFrame setDutyCycle(canid_t can_id, float dutyCycle);
   [[nodiscard]] static ServoFrame setCurrentLoop(canid_t can_id, int32_t currentLoop);
   [[nodiscard]] static ServoFrame setCurrentBrake(canid_t can_id, int32_t current);
@@ -50,8 +50,18 @@ public:
   [[nodiscard]] static ServoFrame setOrigin(canid_t can_id, uint8_t origin_mode);
   [[nodiscard]] static ServoFrame setPositionAndVelo(canid_t, int32_t position, int16_t speed,
                                                      int16_t accel);
-  // If the frame was constructed with the wrong can_frame struct
-  // This will throw, the command id needs to be 0x29
+};
+
+class ServoRecvFrame : public Frame {
+private:
+  ServoFrameID m_servo_id;
+  ServoRecvFrame(canid_t id, ServoFrameID frame_id);
+  uint32_t m_frame_header{};
+  uint8_t getId();
+
+public:
+  ServoRecvFrame(can_frame frame);
+  [[nodiscard]] explicit operator can_frame() const;
   float getPosition();
   int32_t getSpeed();
   float getCurrent();
