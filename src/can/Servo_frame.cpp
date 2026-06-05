@@ -1,9 +1,25 @@
 #include "can/Servo_frame.hpp"
 #include <charconv>
-#include <functional>
+#include <cstdio>
+#include <limits>
 #include <linux/can.h>
 #include <stdexcept>
-#include <string.h>
+
+namespace {
+constexpr int32_t kCurrentLoopMin = -60000;
+constexpr int32_t kCurrentLoopMax = 60000;
+constexpr int32_t kCurrentBrakeMax = 60000;
+constexpr int32_t kRPMMax = 100000;
+constexpr int32_t kPositionMin = -360000000;
+constexpr int32_t kPositionMax = 360000000;
+constexpr int16_t kAccelMin = 0;
+constexpr int16_t kAccelMax = std::numeric_limits<int16_t>::max();
+constexpr uint8_t kServoModeFeedbackId = 0x29;
+constexpr float kDutyScale = 100000.0f;
+constexpr float kPositionDecodeScale = 100.0f;
+constexpr float kCurrentDecodeScale = 100.0f;
+constexpr int32_t kSpeedDecodeScale = 10;
+} // namespace
 
 static std::string invalidCallStr(uint8_t id) {
   char buffer[10];
@@ -14,7 +30,7 @@ static std::string invalidCallStr(uint8_t id) {
 }
 
 static bool check_is_0x29(uint32_t frame_header) {
-  return (static_cast<uint8_t>(frame_header >> 16) == 0x29);
+  return (static_cast<uint8_t>(frame_header >> 16) == kServoModeFeedbackId);
 }
 
 ServoFrame::operator can_frame() const {
@@ -50,7 +66,7 @@ ServoMsgFrame::ServoMsgFrame(canid_t id, ServoFrameID frame_id) : Frame(id), m_s
 
 ServoFrame ServoFrame::setDutyCycle(canid_t can_id, float dutyCycle) {
   // Look in the PDF to see why this is done
-  int32_t duty = static_cast<int32_t>(dutyCycle * 100000);
+  int32_t duty = static_cast<int32_t>(dutyCycle * kDutyScale);
   ServoFrame f(can_id, ServoFrameID::DutyCycleMode);
 
   f.m_data[0] = static_cast<uint8_t>(duty >> 24);
@@ -65,12 +81,12 @@ ServoFrame ServoFrame::setCurrentLoop(canid_t can_id, int32_t current) {
   ServoFrame f(can_id, ServoFrameID::CurrentLoopMode);
 
   [[unlikely]]
-  if (current < -60000 || current > 60000) {
-    current = current < -60000 ? -60000 : 60000;
+  if (current < kCurrentLoopMin || current > kCurrentLoopMax) {
+    current = current < kCurrentLoopMin ? kCurrentLoopMin : kCurrentLoopMax;
     char buf[500]{};
     ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are -60000, 60000",
-               current);
+               "Invalid argument, you sent a value of %d but the limits are %d, %d", current,
+               kCurrentLoopMin, kCurrentLoopMax);
 
     throw std::invalid_argument(const_cast<const char *>(buf));
   }
@@ -86,11 +102,12 @@ ServoFrame ServoFrame::setCurrentLoop(canid_t can_id, int32_t current) {
 ServoFrame ServoFrame::setCurrentBrake(canid_t can_id, int32_t current) {
   ServoFrame f(can_id, ServoFrameID::CurrentBrakeMode);
 
-  if (current < 0 || current > 60000) {
+  if (current < 0 || current > kCurrentBrakeMax) {
 
     char buf[500]{};
     ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are 0, 60000", current);
+               "Invalid argument, you sent a value of %d but the limits are 0, %d", current,
+               kCurrentBrakeMax);
 
     throw std::invalid_argument(buf);
   }
@@ -106,10 +123,11 @@ ServoFrame ServoFrame::setCurrentBrake(canid_t can_id, int32_t current) {
 ServoFrame ServoFrame::setRPM(canid_t can_id, int32_t rpm) {
   ServoFrame f(can_id, ServoFrameID::RPMmode);
 
-  if (rpm < -100000 || rpm > 100000) {
+  if (rpm < -kRPMMax || rpm > kRPMMax) {
     char buf[500]{};
     ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are -10000, 10000", rpm);
+               "Invalid argument, you sent a value of %d but the limits are -%d, %d", rpm, kRPMMax,
+               kRPMMax);
 
     throw std::invalid_argument(buf);
   }
@@ -124,11 +142,11 @@ ServoFrame ServoFrame::setRPM(canid_t can_id, int32_t rpm) {
 ServoFrame ServoFrame::setPosition(canid_t can_id, int32_t pos) {
   ServoFrame f(can_id, ServoFrameID::PositionMode);
 
-  if (pos < -360000000 || pos > 360000000) {
+  if (pos < kPositionMin || pos > kPositionMax) {
     char buf[500]{};
     ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are -360000000, 360000000",
-               pos);
+               "Invalid argument, you sent a value of %d but the limits are %d, %d", pos,
+               kPositionMin, kPositionMax);
 
     throw std::invalid_argument(buf);
   }
@@ -157,22 +175,22 @@ ServoFrame ServoFrame::setOrigin(canid_t can_id, uint8_t origin_mode) {
 ServoFrame ServoFrame::setPositionAndVelo(canid_t can_id, int32_t position, int16_t speed,
                                           int16_t accel) {
   ServoFrame f(can_id, ServoFrameID::PositionVelocityMode);
-  if (position < -360000000 || position > 360000000) {
-    // TODO implement throw
+  if (position < kPositionMin || position > kPositionMax) {
     char buf[500]{};
     ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are -360000000, 360000000",
-               position);
+               "Invalid argument, you sent a value of %d but the limits are %d, %d", position,
+               kPositionMin, kPositionMax);
 
     throw std::invalid_argument(buf);
   }
   // Speed just uses the int limit, no check needed
 
   // Accel uses int limit as upper bound
-  if (accel < 0) {
+  if (accel < kAccelMin) {
     char buf[500]{};
     ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are 0, 32767", position);
+               "Invalid argument, you sent a value of %d but the limits are %d, %d", accel,
+               kAccelMin, kAccelMax);
 
     throw std::invalid_argument(buf);
   }
