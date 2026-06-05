@@ -10,12 +10,10 @@ Additional Information (if appropriate):
 
 ## Testing
 
+### If testing wasn't done explain why
+
 <!-- Please describe how you verified your results. -->
 <!-- Provide instructions so others can reproduce. -->
-
-- [ ] Test A
-  1. Run `$ echo foo` => expect output of "foo"
-- [ ] Test B
 
 ## Checklist
 
@@ -28,11 +26,8 @@ Additional Information (if appropriate):
 - [ ] My changes generate no new warnings
 - [ ] I have tested my code to the best of my abilities
 - [ ] I have performed a self-review of my own code by the criteria above
-- [ ] I have reviewed and tested all acceptance criteria
-- [ ] I have documented and recorded the results of any manual testing I performed that is worth
       repeating
 - [ ] Any dependent changes have been merged and published in downstream modules
-- [ ] I have moved the case to the "Under Review" status
 
 ## Explanation
 
