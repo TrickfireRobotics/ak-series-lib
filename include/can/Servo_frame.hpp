@@ -35,7 +35,7 @@ private:
   ServoFrameID m_servo_id;
   ServoFrame(canid_t id, ServoFrameID frame_id);
   uint32_t m_frame_header{};
-  uint8_t get_id();
+  uint8_t getId();
   bool is0x29();
 
 public:
@@ -50,24 +50,17 @@ public:
   [[nodiscard]] static ServoFrame setOrigin(canid_t can_id, uint8_t origin_mode);
   [[nodiscard]] static ServoFrame setPositionAndVelo(canid_t, int32_t position, int16_t speed,
                                                      int16_t accel);
-  // If the frame was constructed with the wrong can_frame struct
-  // This will throw, the command id needs to be 0x29
-  float getPosition();
-  int32_t getSpeed();
-  float getCurrent();
-  int8_t getTemperature();
-  ErrorCode getErrorCode();
 };
 
-class ServoMsgFrame : public Frame {
+class ServoRecvFrame : public Frame {
 private:
   ServoFrameID m_servo_id;
-  ServoMsgFrame(canid_t id, ServoFrameID frame_id);
+  ServoRecvFrame(canid_t id, ServoFrameID frame_id);
   uint32_t m_frame_header{};
-  uint8_t get_id();
+  uint8_t getId();
 
 public:
-  ServoMsgFrame(can_frame frame);
+  ServoRecvFrame(can_frame frame);
   [[nodiscard]] explicit operator can_frame() const;
   float getPosition();
   int32_t getSpeed();

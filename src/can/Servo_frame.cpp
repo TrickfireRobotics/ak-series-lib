@@ -46,7 +46,7 @@ ServoFrame::operator can_frame() const {
   return f;
 }
 
-ServoMsgFrame::operator can_frame() const {
+ServoRecvFrame::operator can_frame() const {
   can_frame f{};
   f.can_id = static_cast<canid_t>(m_frame_header);
   f.can_id = f.can_id | CAN_EFF_FLAG;
@@ -60,10 +60,11 @@ ServoFrame::ServoFrame(canid_t id, ServoFrameID frame_id) : Frame(id), m_servo_i
   m_frame_header = (static_cast<uint32_t>(m_servo_id) << 8) | (static_cast<uint32_t>(id) & 0xFFu);
 }
 
-ServoMsgFrame::ServoMsgFrame(canid_t id, ServoFrameID frame_id) : Frame(id), m_servo_id{frame_id} {
+ServoRecvFrame::ServoRecvFrame(canid_t id, ServoFrameID frame_id)
+    : Frame(id), m_servo_id{frame_id} {
   m_frame_header = (static_cast<uint32_t>(m_servo_id) << 8) | (static_cast<uint32_t>(id) & 0xFFu);
   if (!check_is_0x29(m_frame_header)) {
-    throw std::invalid_argument("Invalid frame header for ServoMsgFrame");
+    throw std::invalid_argument("Invalid frame header for ServoRecvFrame");
   }
 }
 
@@ -212,13 +213,13 @@ ServoFrame ServoFrame::setPositionAndVelo(canid_t can_id, int32_t position, int1
   return f;
 }
 
-uint8_t ServoFrame::get_id() { return static_cast<uint8_t>(m_frame_header & 0xFFu); }
+uint8_t ServoFrame::getId() { return static_cast<uint8_t>(m_frame_header & 0xFFu); }
 
-uint8_t ServoMsgFrame::get_id() { return static_cast<uint8_t>(m_frame_header & 0xFFu); }
+uint8_t ServoRecvFrame::getId() { return static_cast<uint8_t>(m_frame_header & 0xFFu); }
 
 bool ServoFrame::is0x29() { return check_is_0x29(m_frame_header); }
 
-float ServoMsgFrame::getPosition() {
+float ServoRecvFrame::getPosition() {
   int16_t pos{};
   std::copy(m_data.begin(), m_data.begin() + 2, &pos);
   /*
@@ -233,7 +234,7 @@ float ServoMsgFrame::getPosition() {
   return posreal;
 }
 
-int32_t ServoMsgFrame::getSpeed() {
+int32_t ServoRecvFrame::getSpeed() {
   int16_t speed{};
   std::copy(m_data.begin() + 2, m_data.begin() + 4, &speed);
   int32_t speedreal{speed};
@@ -241,7 +242,7 @@ int32_t ServoMsgFrame::getSpeed() {
   return speedreal;
 }
 
-float ServoMsgFrame::getCurrent() {
+float ServoRecvFrame::getCurrent() {
   int16_t current{};
   std::copy(m_data.begin() + 4, m_data.begin() + 6, &current);
   float currentreal{static_cast<float>(current)};
@@ -249,12 +250,12 @@ float ServoMsgFrame::getCurrent() {
   return currentreal;
 }
 
-int8_t ServoMsgFrame::getTemperature() {
+int8_t ServoRecvFrame::getTemperature() {
   int8_t temp{static_cast<int8_t>(m_data[6])};
   return temp;
 }
 
-ErrorCode ServoMsgFrame::getErrorCode() {
+ErrorCode ServoRecvFrame::getErrorCode() {
   ErrorCode r = static_cast<ErrorCode>(m_data[7]);
   return r;
 }
