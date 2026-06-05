@@ -44,8 +44,6 @@ void MitSendFrame::padData() {
   uint16_t current = float_to_uint(m_settings->current, 0, 60, 12);
   uint16_t KP = float_to_uint(m_settings->KP, 0, lims.KPMax, 12);
   uint16_t KD = float_to_uint(m_settings->KD, 0, lims.KDMax, 12);
-  uint8_t temp1{0};
-  uint8_t temp2{0};
   m_data[0] = static_cast<uint8_t>(pos >> 8);
   // Position low 8 bytes
   m_data[1] = static_cast<uint8_t>(pos);
@@ -57,3 +55,14 @@ void MitSendFrame::padData() {
   m_data[6] = (KD >> 4) | (current >> 8);
   m_data[7] = static_cast<uint8_t>(current >> 4);
 }
+
+MitRecvFrame::MitRecvFrame(const can_frame &frame) : Frame(frame.can_id) {
+  std::copy(&frame.data[0], &frame.data[7], m_data);
+}
+
+// TODO implement
+uint8_t MitRecvFrame::getId() {}
+int32_t MitRecvFrame::getPosition() {}
+float MitRecvFrame::getCurrent() {}
+uint8_t MitRecvFrame::getTemperature() {}
+ErrorCode MitRecvFrame::getErrorCode() {}

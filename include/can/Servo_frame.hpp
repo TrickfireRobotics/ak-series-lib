@@ -32,11 +32,10 @@ enum class ServoFrameID : uint8_t {
 
 class ServoFrame : public Frame {
 private:
-  ServoFrameID m_servo_id;
+  ServoFrameID mServoID;
   ServoFrame(canid_t id, ServoFrameID frame_id);
-  uint32_t m_frame_header{};
+  uint32_t mFrameHeader{};
   uint8_t getId();
-  bool is0x29();
 
 public:
   // when we read, we implicitly assume that it will be a canframe we are pulling this from
@@ -54,9 +53,9 @@ public:
 
 class ServoRecvFrame : public Frame {
 private:
-  ServoFrameID m_servo_id;
+  ServoFrameID mServoID;
   ServoRecvFrame(canid_t id, ServoFrameID frame_id);
-  uint32_t m_frame_header{};
+  uint32_t mFrameHeader{};
   uint8_t getId();
 
 public:

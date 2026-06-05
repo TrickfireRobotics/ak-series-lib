@@ -21,25 +21,13 @@ constexpr float kCurrentDecodeScale = 100.0f;
 constexpr int32_t kSpeedDecodeScale = 10;
 } // namespace
 
-static std::string invalidCallStr(uint8_t id) {
-  char buffer[10];
-  auto result = std::to_chars(buffer, buffer + sizeof(buffer), id);
-  if (result.ec != std::errc{}) {
-    throw std::runtime_error("Failed to format servo id");
-  }
-  std::string desc{"Invalid call called get_current on a frame with id 0x29 this has id of "};
-  desc.append(buffer, result.ptr);
-  return desc;
-}
-
-static bool check_is_0x29(uint32_t frame_header) {
-  // Command ID occupies bits [15:8] per protocol (stored as << 8)
-  return (static_cast<uint8_t>((frame_header >> 8) & 0xFF) == kServoModeFeedbackId);
+static bool check_is_0x29(uint32_t frameHeader) {
+  return static_cast<uint8_t>(frameHeader >> 8) == 0x29;
 }
 
 ServoFrame::operator can_frame() const {
   can_frame f{};
-  f.can_id = static_cast<canid_t>(m_frame_header);
+  f.can_id = static_cast<canid_t>(mFrameHeader);
   f.can_id = f.can_id | CAN_EFF_FLAG;
   f.len8_dlc = 8;
   std::copy(m_data.begin(), m_data.end(), f.data);
@@ -48,22 +36,20 @@ ServoFrame::operator can_frame() const {
 
 ServoRecvFrame::operator can_frame() const {
   can_frame f{};
-  f.can_id = static_cast<canid_t>(m_frame_header);
+  f.can_id = static_cast<canid_t>(mFrameHeader);
   f.can_id = f.can_id | CAN_EFF_FLAG;
   f.len8_dlc = 8;
   std::copy(m_data.begin(), m_data.end(), f.data);
   return f;
 }
 
-ServoFrame::ServoFrame(canid_t id, ServoFrameID frame_id) : Frame(id), m_servo_id{frame_id} {
-  // Pack command (frame id) into bits [15:8] and motor id into [7:0]
-  m_frame_header = (static_cast<uint32_t>(m_servo_id) << 8) | (static_cast<uint32_t>(id) & 0xFFu);
+ServoFrame::ServoFrame(canid_t id, ServoFrameID frame_id) : Frame(id), mServoID{frame_id} {
+  mFrameHeader = (static_cast<uint32_t>(mServoID) << 8) | (static_cast<uint32_t>(id) & 0xFFu);
 }
 
-ServoRecvFrame::ServoRecvFrame(canid_t id, ServoFrameID frame_id)
-    : Frame(id), m_servo_id{frame_id} {
-  m_frame_header = (static_cast<uint32_t>(m_servo_id) << 8) | (static_cast<uint32_t>(id) & 0xFFu);
-  if (!check_is_0x29(m_frame_header)) {
+ServoRecvFrame::ServoRecvFrame(canid_t id, ServoFrameID frame_id) : Frame(id), mServoID{frame_id} {
+  mFrameHeader = (static_cast<uint32_t>(mServoID) << 8) | (static_cast<uint32_t>(id) & 0xFFu);
+  if (!check_is_0x29(mFrameHeader)) {
     throw std::invalid_argument("Invalid frame header for ServoRecvFrame");
   }
 }
@@ -85,14 +71,11 @@ ServoFrame ServoFrame::setCurrentLoop(canid_t can_id, int32_t current) {
   ServoFrame f(can_id, ServoFrameID::CurrentLoopMode);
 
   [[unlikely]]
-  if (current < kCurrentLoopMin || current > kCurrentLoopMax) {
-    current = current < kCurrentLoopMin ? kCurrentLoopMin : kCurrentLoopMax;
-    char buf[500]{};
-    ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are %d, %d", current,
-               kCurrentLoopMin, kCurrentLoopMax);
-
-    throw std::invalid_argument(const_cast<const char *>(buf));
+  if (current < -60000 || current > 60000) {
+    std::fprintf(stderr,
+                 "Passed invalid current value, you passed %d, limits are -60,000 -> 60,000",
+                 current);
+    current = current < -60000 ? -60000 : 60000;
   }
 
   f.m_data[0] = static_cast<uint8_t>(current >> 24);
@@ -106,14 +89,10 @@ ServoFrame ServoFrame::setCurrentLoop(canid_t can_id, int32_t current) {
 ServoFrame ServoFrame::setCurrentBrake(canid_t can_id, int32_t current) {
   ServoFrame f(can_id, ServoFrameID::CurrentBrakeMode);
 
-  if (current < 0 || current > kCurrentBrakeMax) {
-
-    char buf[500]{};
-    ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are 0, %d", current,
-               kCurrentBrakeMax);
-
-    throw std::invalid_argument(buf);
+  if (current < 0 || current > 60000) {
+    std::fprintf(stderr, "Passed invalid brake value, you passed %d, limits are %d -> %d\n",
+                 current, 0, kCurrentBrakeMax);
+    current = current < 0 ? 0 : 60000;
   }
 
   f.m_data[0] = static_cast<uint8_t>(current >> 24);
@@ -127,13 +106,10 @@ ServoFrame ServoFrame::setCurrentBrake(canid_t can_id, int32_t current) {
 ServoFrame ServoFrame::setRPM(canid_t can_id, int32_t rpm) {
   ServoFrame f(can_id, ServoFrameID::RPMmode);
 
-  if (rpm < -kRPMMax || rpm > kRPMMax) {
-    char buf[500]{};
-    ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are -%d, %d", rpm, kRPMMax,
-               kRPMMax);
-
-    throw std::invalid_argument(buf);
+  if (rpm < -100000 || rpm > 100000) {
+    std::fprintf(stderr, "Passed an invalid RPM value, you passed %d limits were %d -> %d \n", rpm,
+                 -kRPMMax, kRPMMax);
+    rpm = rpm < -10000 ? -100000 : 100000;
   }
 
   f.m_data[0] = static_cast<uint8_t>(rpm >> 24);
@@ -146,13 +122,11 @@ ServoFrame ServoFrame::setRPM(canid_t can_id, int32_t rpm) {
 ServoFrame ServoFrame::setPosition(canid_t can_id, int32_t pos) {
   ServoFrame f(can_id, ServoFrameID::PositionMode);
 
-  if (pos < kPositionMin || pos > kPositionMax) {
-    char buf[500]{};
-    ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are %d, %d", pos,
-               kPositionMin, kPositionMax);
-
-    throw std::invalid_argument(buf);
+  if (pos < -360000000 || pos > 360000000) {
+    pos = pos < -360000000 ? -360000000 : 360000000;
+    std::fprintf(stderr,
+                 "Passed an invalid position value, you passed %d -360,000,000 -> 360,000,000\n",
+                 pos);
   }
 
   f.m_data[0] = static_cast<uint8_t>(pos >> 24);
@@ -166,11 +140,6 @@ ServoFrame ServoFrame::setPosition(canid_t can_id, int32_t pos) {
 ServoFrame ServoFrame::setOrigin(canid_t can_id, uint8_t origin_mode) {
   ServoFrame f(can_id, ServoFrameID::SetOriginMode);
   if (origin_mode > 1) {
-    char buf[500]{};
-    ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are 0 or 1", origin_mode);
-
-    throw std::invalid_argument(buf);
   }
   f.m_data[0] = origin_mode;
   return f;
@@ -191,12 +160,11 @@ ServoFrame ServoFrame::setPositionAndVelo(canid_t can_id, int32_t position, int1
 
   // Accel uses int limit as upper bound
   if (accel < kAccelMin) {
-    char buf[500]{};
-    ::snprintf(buf, sizeof(buf) - 1,
-               "Invalid argument, you sent a value of %d but the limits are %d, %d", accel,
-               kAccelMin, kAccelMax);
 
-    throw std::invalid_argument(buf);
+    std::fprintf(stderr,
+                 "Invalid argument passed to acceleration, value was %d, limits were %d->%d\n",
+                 accel, kAccelMin, kAccelMax);
+    accel = kAccelMin;
   }
 
   f.m_data[0] = static_cast<uint8_t>(position >> 24);
@@ -213,11 +181,9 @@ ServoFrame ServoFrame::setPositionAndVelo(canid_t can_id, int32_t position, int1
   return f;
 }
 
-uint8_t ServoFrame::getId() { return static_cast<uint8_t>(m_frame_header & 0xFFu); }
+uint8_t ServoFrame::getId() { return static_cast<uint8_t>(mFrameHeader & 0xFFu); }
 
-uint8_t ServoRecvFrame::getId() { return static_cast<uint8_t>(m_frame_header & 0xFFu); }
-
-bool ServoFrame::is0x29() { return check_is_0x29(m_frame_header); }
+uint8_t ServoRecvFrame::getId() { return static_cast<uint8_t>(mFrameHeader & 0xFFu); }
 
 float ServoRecvFrame::getPosition() {
   int16_t pos{};
@@ -229,25 +195,25 @@ float ServoRecvFrame::getPosition() {
    * it introduces some confusion and makes life harder for anyone
    * that doesnt have an intimate knowledge of the protocol
    */
-  float posreal{static_cast<float>(pos)};
-  posreal /= 100;
-  return posreal;
+  float posReal{static_cast<float>(pos)};
+  posReal /= 100;
+  return posReal;
 }
 
 int32_t ServoRecvFrame::getSpeed() {
   int16_t speed{};
   std::copy(m_data.begin() + 2, m_data.begin() + 4, &speed);
-  int32_t speedreal{speed};
-  speedreal *= 10;
-  return speedreal;
+  int32_t speedReal{speed};
+  speedReal *= 10;
+  return speedReal;
 }
 
 float ServoRecvFrame::getCurrent() {
   int16_t current{};
   std::copy(m_data.begin() + 4, m_data.begin() + 6, &current);
-  float currentreal{static_cast<float>(current)};
-  currentreal /= 100;
-  return currentreal;
+  float currentReal{static_cast<float>(current)};
+  currentReal /= 100;
+  return currentReal;
 }
 
 int8_t ServoRecvFrame::getTemperature() {

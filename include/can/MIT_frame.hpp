@@ -47,6 +47,7 @@ public:
 class MitRecvFrame : public Frame {
 private:
 public:
+  MitRecvFrame() = delete;
   MitRecvFrame(const can_frame &frame);
   uint8_t getId();
   int32_t getPosition();
