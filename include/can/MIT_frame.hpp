@@ -14,8 +14,8 @@ extern "C" {
 #include "can/frame.hpp"
 #include "motors/MotorLimits.hpp"
 
-#define FIRST4BYTES (15 << 4)
-#define LAST4BYTES (15)
+#define FIRST4BITS (15)
+#define LAST4BITS (15 << 4)
 
 typedef struct MitRunSettings {
   // Rads
@@ -26,6 +26,9 @@ typedef struct MitRunSettings {
   float current{};
   float KP{};
   float KD{};
+  MitRunSettings(float pos, float sp, float curr, float P, float D)
+      : position{pos}, speed{sp}, current{curr}, KP{P}, KD{D} {}
+  MitRunSettings() : position{0.0f}, speed{0.0f}, current{0.0f}, KP{0.0f}, KD{0.0f} {}
 } MitRunSettings;
 
 void beginMitMode(canid_t can_id);
@@ -38,9 +41,9 @@ private:
 
 public:
   MitRunSettings *mSettings{nullptr};
-  MitSendFrame(canid_t can_id, AkSeriesMotors motor, MitRunSettings *settings = nullptr)
+  explicit MitSendFrame(canid_t can_id, AkSeriesMotors motor, MitRunSettings *settings = nullptr)
       : Frame(can_id), mMotor{motor},
-        mSettings{settings == nullptr ? new MitRunSettings : settings},
+        mSettings{settings == nullptr ? new MitRunSettings() : settings},
         mLims{motorRunLimits[static_cast<uint8_t>(mMotor)]} {}
 
   MitSendFrame() = delete;
