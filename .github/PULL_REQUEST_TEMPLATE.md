@@ -7,7 +7,7 @@
 ## Testing
 
 - [ ] Make sure you wrote appropriate tests for your functionality
-- [ ] Your tests should not break any pre-existing tests
+- [ ] Your code doesn't break any pre-existing tests
 
 ## Checklist
 
