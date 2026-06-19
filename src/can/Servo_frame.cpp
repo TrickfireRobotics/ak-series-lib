@@ -19,11 +19,26 @@ constexpr float kDutyScale = 100000.0f;
 constexpr float kPositionDecodeScale = 100.0f;
 constexpr float kCurrentDecodeScale = 100.0f;
 constexpr int32_t kSpeedDecodeScale = 10;
-} // namespace
 
-static bool check_is_0x29(uint32_t frameHeader) {
-  return static_cast<uint8_t>(frameHeader >> 8) == 0x29;
+constexpr float fCurrentLoopMin = static_cast<float>(kCurrentLoopMin) / 1000.0f;
+constexpr float fCurrentLoopMax = static_cast<float>(kCurrentLoopMax) / 1000.0f;
+constexpr float fCurrentBrakeMax = static_cast<float>(kCurrentBrakeMax) / 1000.0f;
+constexpr float fRPMMax = static_cast<float>(kRPMMax);
+constexpr float fPositionMin = static_cast<float>(kPositionMin) / 10000.0f;
+constexpr float fPositionMax = static_cast<float>(kPositionMax) / 10000.0f;
+constexpr float fAccelMin = 0.0f;
+constexpr float fAccelMax = static_cast<float>(kAccelMax) * 10.0f;
+
+bool checkIs0x29(uint32_t frameHeader) { return static_cast<uint8_t>(frameHeader >> 8) == 0x29; }
+
+void warnRounding(const char *val, float min, float max, float n) {
+  std::fprintf(stderr,
+               "Warning: the value you passed for %s is in between invalid bounds, the bounds were "
+               "%f -> %f, you passed %f rounding\n",
+               val, min, max, n);
 }
+
+} // namespace
 
 ServoSendFrame::operator can_frame() {
   can_frame f{};
@@ -57,8 +72,7 @@ ServoSendFrame ServoSendFrame::setCurrentLoop(canid_t can_id, float current) {
   int32_t currentInt = static_cast<int32_t>(current * 1000.0f);
   [[unlikely]]
   if (currentInt < -60000 || current > 60000) {
-    std::fprintf(stderr, "Passed invalid currentInt value, you passed %f, limits are -60.0 -> 60.0",
-                 current);
+    warnRounding("current", fCurrentLoopMin, fCurrentLoopMax, current);
     currentInt = currentInt < -60000 ? -60000 : 60000;
   }
 
@@ -75,8 +89,7 @@ ServoSendFrame ServoSendFrame::setCurrentBrake(canid_t can_id, float current) {
   int32_t currentReal = static_cast<int32_t>(current * 1000.0f);
 
   if (currentReal < 0 || currentReal > 60000) {
-    std::fprintf(stderr, "Passed invalid brake value, you passed %f, limits are %f -> %f\n",
-                 current, 0.0f, static_cast<float>(kCurrentBrakeMax) / 1000.0f);
+    warnRounding("Current brake", 0.0f, fCurrentBrakeMax, current);
     currentReal = currentReal < 0 ? 0 : 60000;
   }
 
@@ -93,8 +106,7 @@ ServoSendFrame ServoSendFrame::setRPM(canid_t can_id, float rpm) {
 
   int32_t rpmReal{static_cast<int32_t>(rpm)};
   if (rpmReal < -100000 || rpm > 100000) {
-    std::fprintf(stderr, "Passed an invalid RPM value, you passed %f limits were %d -> %d \n", rpm,
-                 -kRPMMax, kRPMMax);
+    warnRounding("Velocity", -fRPMMax, fRPMMax, rpm);
     rpmReal = rpmReal < -10000 ? -100000 : 100000;
   }
 
@@ -111,9 +123,8 @@ ServoSendFrame ServoSendFrame::setPosition(canid_t can_id, float pos) {
   int32_t posReal = static_cast<int32_t>(pos * 10000.0f);
 
   if (posReal < -360000000 || posReal > 360000000) {
+    warnRounding("Position", fPositionMin, fPositionMax, pos);
     posReal = posReal < -360000000 ? -360000000 : 360000000;
-    std::fprintf(stderr, "Passed an invalid posRealition value, you passed %f -36,000 -> 36,000\n",
-                 pos);
   }
 
   f.mData[0] = static_cast<uint8_t>(posReal >> 24);
@@ -142,27 +153,17 @@ ServoSendFrame ServoSendFrame::setPositionAndVelo(canid_t can_id, float position
   int16_t accelReal = static_cast<int16_t>(accel / 10.0f);
 
   if (position < kPositionMin || position > kPositionMax) {
-
-    std::fprintf(stderr, "Invalid argument passed to position you passed %f, expected %f -> %f\n",
-                 position, static_cast<float>(kPositionMin) / 10000.0f,
-                 static_cast<float>(kPositionMax) / 10000.0f);
     posReal = posReal < kPositionMin ? kPositionMin : kPositionMax;
+    warnRounding("Position", fPositionMin, fPositionMax, position);
   }
 
   if (speed < -327670.0f || speed > 327670.0f) {
-    std::fprintf(stderr,
-                 "Invalid argument to speed you passed %f, but the values are between %f -> %f",
-                 speed, -327670.0f, 327670.0f);
-
+    warnRounding("Velocity", -fRPMMax, fRPMMax, speed);
     speedReal = speedReal < -32767 ? -32767 : 32767;
   }
 
   if (accel < 0.0f || accel > 327680.0f) {
-    std::fprintf(stderr,
-                 "Invalid argument to acceleration you passed %f, but the values are between %f -> "
-                 "%f, rounding down",
-                 accel, 0.0f, 327670.0f);
-
+    warnRounding("Acceleration", 0.0f, fAccelMax, accel);
     accelReal = accelReal < 0 ? 0 : 32767;
   }
 
@@ -184,7 +185,7 @@ uint8_t ServoSendFrame::getId() { return static_cast<uint8_t>(mFrameHeader); }
 
 ServoRecvFrame::ServoRecvFrame(canid_t id, ServoFrameID frame_id) : Frame(id), mServoID{frame_id} {
   mFrameHeader = (static_cast<uint32_t>(mServoID) << 8) | (static_cast<uint32_t>(id));
-  if (!check_is_0x29(mFrameHeader)) {
+  if (!checkIs0x29(mFrameHeader)) {
     throw std::invalid_argument("Invalid frame header for ServoRecvFrame");
   }
 }
