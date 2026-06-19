@@ -22,8 +22,11 @@ protected:
 
 public:
   Frame() = delete;
-  Frame(canid_t id) : mCanId{id} { std::memset(mData.begin(), 0, 8); };
+  Frame(canid_t id) : mCanId{id} { std::memset(mData.begin(), 0, 8); }
   // Every can frame should be an easy conversion
-  virtual explicit operator can_frame() const;
+  virtual explicit operator can_frame() {
+    can_frame frame{};
+    return frame;
+  };
 };
 #endif

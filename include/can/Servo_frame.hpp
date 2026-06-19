@@ -40,7 +40,7 @@ private:
 public:
   // when we read, we implicitly assume that it will be a canframe we are pulling this from
   ServoSendFrame(can_frame frame);
-  [[nodiscard]] explicit operator can_frame() const;
+  [[nodiscard]] explicit operator can_frame();
   [[nodiscard]] static ServoSendFrame setDutyCycle(canid_t can_id, float dutyCycle);
   [[nodiscard]] static ServoSendFrame setCurrentLoop(canid_t can_id, float currentLoop);
   [[nodiscard]] static ServoSendFrame setCurrentBrake(canid_t can_id, float current);
@@ -59,8 +59,8 @@ private:
 
 public:
   uint8_t getId();
-  ServoRecvFrame(can_frame frame);
-  [[nodiscard]] explicit operator can_frame() const;
+  ServoRecvFrame(const can_frame &frame);
+  [[nodiscard]] explicit operator can_frame();
   float getPosition();
   int32_t getSpeed();
   float getCurrent();

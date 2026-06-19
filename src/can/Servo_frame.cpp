@@ -25,7 +25,7 @@ static bool check_is_0x29(uint32_t frameHeader) {
   return static_cast<uint8_t>(frameHeader >> 8) == 0x29;
 }
 
-ServoSendFrame::operator can_frame() const {
+ServoSendFrame::operator can_frame() {
   can_frame f{};
   f.can_id = static_cast<canid_t>(mFrameHeader);
   f.can_id = f.can_id | CAN_EFF_FLAG;
@@ -180,16 +180,21 @@ ServoSendFrame ServoSendFrame::setPositionAndVelo(canid_t can_id, float position
   return f;
 }
 
-uint8_t ServoSendFrame::getId() { return static_cast<uint8_t>(mFrameHeader & 0xFFu); }
+uint8_t ServoSendFrame::getId() { return static_cast<uint8_t>(mFrameHeader); }
 
 ServoRecvFrame::ServoRecvFrame(canid_t id, ServoFrameID frame_id) : Frame(id), mServoID{frame_id} {
-  mFrameHeader = (static_cast<uint32_t>(mServoID) << 8) | (static_cast<uint32_t>(id) & 0xFFu);
+  mFrameHeader = (static_cast<uint32_t>(mServoID) << 8) | (static_cast<uint32_t>(id));
   if (!check_is_0x29(mFrameHeader)) {
     throw std::invalid_argument("Invalid frame header for ServoRecvFrame");
   }
 }
 
-ServoRecvFrame::operator can_frame() const {
+ServoRecvFrame::ServoRecvFrame(const can_frame &frame) : Frame(frame.can_id) {
+  // looks like OOB error, but if you put frame.data[7] it chops the last byte off
+  std::copy(&frame.data[0], &frame.data[8], mData.begin());
+}
+
+ServoRecvFrame::operator can_frame() {
   can_frame f{};
   f.can_id = static_cast<canid_t>(mFrameHeader);
   f.can_id = f.can_id | CAN_EFF_FLAG;
@@ -198,26 +203,22 @@ ServoRecvFrame::operator can_frame() const {
   return f;
 }
 
-uint8_t ServoRecvFrame::getId() { return static_cast<uint8_t>(mFrameHeader & 0xFFu); }
+uint8_t ServoRecvFrame::getId() { return static_cast<uint8_t>(mCanId); }
 
 float ServoRecvFrame::getPosition() {
   int16_t pos{};
-  std::copy(mData.begin(), mData.begin() + 2, &pos);
-  /*
-   * Check ak-series PDF, protocol calls for this
-   * I want values to reflect what they look like on the motors
-   * not the explicit return values on the protocol,
-   * it introduces some confusion and makes life harder for anyone
-   * that doesnt have an intimate knowledge of the protocol
-   */
+  pos += static_cast<int16_t>(mData[0]) << 8;
+  pos += static_cast<int16_t>(mData[1]);
   float posReal{static_cast<float>(pos)};
-  posReal /= 100;
+  posReal /= 10.0f;
   return posReal;
 }
 
 int32_t ServoRecvFrame::getSpeed() {
   int16_t speed{};
-  std::copy(mData.begin() + 2, mData.begin() + 4, &speed);
+  speed += static_cast<int16_t>(mData[2]) << 8;
+  speed += static_cast<int16_t>(mData[3]);
+
   int32_t speedReal{speed};
   speedReal *= 10;
   return speedReal;
@@ -225,7 +226,9 @@ int32_t ServoRecvFrame::getSpeed() {
 
 float ServoRecvFrame::getCurrent() {
   int16_t current{};
-  std::copy(mData.begin() + 4, mData.begin() + 6, &current);
+  current += static_cast<int16_t>(mData[4]) << 8;
+  current += static_cast<int16_t>(mData[5]);
+
   float currentReal{static_cast<float>(current)};
   currentReal /= 100;
   return currentReal;

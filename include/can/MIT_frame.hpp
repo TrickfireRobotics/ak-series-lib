@@ -14,8 +14,8 @@ extern "C" {
 #include "can/frame.hpp"
 #include "motors/MotorLimits.hpp"
 
-#define FIRST4BITS (15)
-#define LAST4BITS (15 << 4)
+#define LOW4BITS (15)
+#define HIGH4BITS (15 << 4)
 
 typedef struct MitRunSettings {
   // Rads
@@ -40,13 +40,12 @@ private:
   void padData();
 
 public:
+  MitSendFrame() = delete;
   MitRunSettings *mSettings{nullptr};
   explicit MitSendFrame(canid_t can_id, AkSeriesMotors motor, MitRunSettings *settings = nullptr)
       : Frame(can_id), mMotor{motor},
         mSettings{settings == nullptr ? new MitRunSettings() : settings},
         mLims{motorRunLimits[static_cast<uint8_t>(mMotor)]} {}
-
-  MitSendFrame() = delete;
   explicit operator can_frame();
 };
 
@@ -61,8 +60,9 @@ public:
   uint8_t getId();
   float getPosition();
   float getCurrent();
-  uint8_t getTemperature();
+  int8_t getTemperature();
   ErrorCode getErrorCode();
+  explicit operator can_frame();
 };
 
 #endif
