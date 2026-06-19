@@ -1,17 +1,13 @@
 ## Description
 
-## <!-- Explain the changes you made here: -->
-
--
-
-Additional Information (if appropriate):
+## Additional Information (if appropriate):
 
 <!-- Include any additional files, such as png, pdf, links, etc -->
 
 ## Testing
 
-<!-- Please describe how you verified your results. -->
-<!-- Provide instructions so others can reproduce. -->
+- [ ] Make sure you wrote appropriate tests for your functionality
+- [ ] Your tests should not break any pre-existing tests
 
 ## Checklist
 
@@ -25,7 +21,6 @@ Additional Information (if appropriate):
 - [ ] I have tested my code to the best of my abilities
 - [ ] I have performed a self-review of my own code by the criteria above
       repeating
-- [ ] Any dependent changes have been merged and published in downstream modules
 
 ## Explanation
 
