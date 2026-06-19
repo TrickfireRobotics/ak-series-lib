@@ -99,14 +99,14 @@ TEST_F(ServoFrameTests, ServoSendRPM) {
 TEST_F(ServoFrameTests, ServoSendPosition) {
   canid_t canId = 11;
   float positionValue = -12345.678;
-
+  int32_t positionValueInt = static_cast<int32_t>(positionValue * 10000.0f);
   ServoSendFrame positionFrame = ServoSendFrame::setPosition(canId, positionValue);
   can_frame frame = static_cast<can_frame>(positionFrame);
 
   ASSERT_EQ(servoFrameId(frame), static_cast<uint8_t>(ServoFrameID::PositionMode))
       << "Header for position mode was invalid";
   ASSERT_EQ(servoCanId(frame), canId) << "Can ID for position mode was invalid";
-  ASSERT_EQ(readInt32BE(frame.data), positionValue) << "Position value was invalid";
+  ASSERT_EQ(readInt32BE(frame.data), positionValueInt) << "Position value was invalid";
   assertTrailingZeroes(frame, 4);
 }
 
@@ -155,7 +155,7 @@ TEST_F(ServoFrameTests, ServoRecvFrameTests) {
   const ErrorCode expectedError = ErrorCode::OverTemperature;
 
   std::array<uint8_t, 8> data{};
-  const int16_t positionRaw = static_cast<int16_t>(expectedPosition * 100.0f);
+  const int16_t positionRaw = static_cast<int16_t>(expectedPosition * 10.0f);
   const int16_t speedRaw = static_cast<int16_t>(expectedSpeed / 10);
   const int16_t currentRaw = static_cast<int16_t>(expectedCurrent * 100.0f);
 
@@ -172,7 +172,7 @@ TEST_F(ServoFrameTests, ServoRecvFrameTests) {
   ServoRecvFrame recvFrame(frame);
 
   ASSERT_EQ(recvFrame.getId(), canId) << "ID was incorrect";
-  ASSERT_FLOAT_EQ(recvFrame.getPosition(), expectedPosition) << "Position was incorrect";
+  ASSERT_NEAR(recvFrame.getPosition(), expectedPosition, 0.1f) << "Position was incorrect";
   ASSERT_EQ(recvFrame.getSpeed(), expectedSpeed) << "Speed was incorrect";
   ASSERT_FLOAT_EQ(recvFrame.getCurrent(), expectedCurrent) << "Current was incorrect";
   ASSERT_EQ(recvFrame.getTemperature(), expectedTemp) << "Temperature value was incorrect";

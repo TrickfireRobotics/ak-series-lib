@@ -5,6 +5,7 @@
 #include "Exceptions.hpp"
 #include "can/MIT_frame.hpp"
 #include "can/Servo_frame.hpp"
+#include "can/frame.hpp"
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -32,10 +33,10 @@ protected:
   ErrorCode fakeError{};
 
 public:
-  MitFrameTests();
-  ~MitFrameTests() override;
+  MitFrameTests() {}
+  ~MitFrameTests() = default;
   void SetUp() override;
-  void TearDown() override;
+  void TearDown() override {};
 };
 
 #endif
