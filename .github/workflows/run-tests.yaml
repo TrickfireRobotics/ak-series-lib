@@ -1,0 +1,34 @@
+name: tests
+run-name: testing by ${{ github.actor }}
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  run-tests:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake can-utils
+
+      - name: Run tests
+        run: |
+          cmake -S . -B build -DSETUP_TEST_IFNAME=ON -DBUILD_TESTING=ON 
+          cd build
+          make
+          ./run_tests
+          cd ..
+          rm -rf build
