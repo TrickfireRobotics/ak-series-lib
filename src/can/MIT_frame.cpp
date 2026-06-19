@@ -63,8 +63,7 @@ MitRecvFrame::MitRecvFrame(const can_frame &frame, AkSeriesMotors motor)
 uint8_t MitRecvFrame::getId() { return mData[0]; }
 
 float MitRecvFrame::getPosition() {
-  int32_t pos = (static_cast<int32_t>(mData[1]) << 24) |
-                (static_cast<int32_t>(mData[2]) << 16) |
+  int32_t pos = (static_cast<int32_t>(mData[1]) << 24) | (static_cast<int32_t>(mData[2]) << 16) |
                 (static_cast<int32_t>(mData[3]) << 8) | static_cast<int32_t>(mData[4]);
   pos >>= 4;
   return uint_to_float(pos, -mLims.pos, mLims.pos, 28);
