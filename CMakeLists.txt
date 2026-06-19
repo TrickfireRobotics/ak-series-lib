@@ -21,8 +21,8 @@ add_library(ak_series::ak_series_lib ALIAS ak_series_lib)
 
 target_sources(ak_series_lib
   PRIVATE
-  src/can/Mit_frame.cpp
-    src/can/Servo_frame.cpp
+  src/can/MIT_frame.cpp
+  src/can/Servo_frame.cpp
 )
 
 target_compile_features(ak_series_lib PUBLIC cxx_std_17)
@@ -52,6 +52,8 @@ if (BUILD_TESTING)
 	add_executable(run_tests
 	  # Add testing files here once populated
     tests/run_tests.cpp
+    tests/can/ServoFrameTests.cpp
+    tests/can/MitFrameTests.cpp
 	)
 	set(AK_SERIES_TESTS ak_series_lib GTest::gtest_main)
 	target_link_libraries(run_tests PUBLIC ${AK_SERIES_TESTS})
