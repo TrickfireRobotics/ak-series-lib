@@ -23,6 +23,7 @@ target_sources(ak_series_lib
   PRIVATE
   src/can/MIT_frame.cpp
   src/can/Servo_frame.cpp
+  src/can/comms.cpp
 )
 
 target_compile_features(ak_series_lib PUBLIC cxx_std_17)
