@@ -45,35 +45,13 @@ static const char *errCodeToStr(ErrorCode s) {
   };
 }
 
-namespace aks {
-
-class invalid_call : public std::runtime_error {
-private:
-  std::string desc{};
-
-public:
-  invalid_call(const std::string &d) : std::runtime_error(d) {}
+namespace AKSeries {
+template <typename T, typename U> struct Expected {
+  T success;
+  U failed;
+  bool successful;
 };
 
-class ServoException : public std::exception {
-private:
-  ErrorCode code{};
-  std::string desc{};
-
-public:
-  ServoException(const std::string err, ErrorCode s = ErrorCode::NoFault)
-      : std::exception(), desc{err}, code{s} {};
-  const char *what() {
-    if (code == ErrorCode::NoFault) {
-      return desc.c_str();
-    } else {
-      desc += ": ";
-      desc += errCodeToStr(code);
-      return desc.c_str();
-    }
-  }
-};
-
-} // namespace aks
+} // namespace AKSeries
 
 #endif

@@ -10,7 +10,7 @@ extern "C" {
 #include <linux/can.h>
 #endif
 
-#include "Exceptions.hpp"
+#include "Errors.hpp"
 #include "can/frame.hpp"
 #include "motors/MotorLimits.hpp"
 

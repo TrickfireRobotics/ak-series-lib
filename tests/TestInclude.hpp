@@ -2,7 +2,7 @@
 #define __TEST_AK_SERIES
 #include "motors/MotorLimits.hpp"
 #pragma once
-#include "Exceptions.hpp"
+#include "Errors.hpp"
 #include "can/MIT_frame.hpp"
 #include "can/Servo_frame.hpp"
 #include "can/frame.hpp"
