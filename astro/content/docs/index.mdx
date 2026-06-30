@@ -1,0 +1,38 @@
+---
+title: TrickFire AK Series driver 
+description: Documentation for the TrickFire Robotics AK Series motor driver.
+template: splash
+hero:
+  title: TrickFire AK Series driver. 
+  tagline: Development guide and low level code documentation for the CubeMars AK Series driver board's. A deep dive into the code that controls our motors and how to contribute.
+  image:
+    html: '<img src="/ak-series-lib/logo-small.png" alt="TrickFire Robotics Logo" class="hero-logo">'
+  actions:
+    - text: Get Started
+      link: /ak-series-lib/setup/getting-started/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/TrickfireRobotics/ak-series-lib
+      icon: external
+      variant: minimal
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <LinkCard
+    title="Getting Started"
+    description="Clone the repo and start developing"
+    href="/ak-series-lib/setup/getting-started/"
+  />
+  <LinkCard
+    title="Development guides"
+    description="A link to some documents pulled from the manufacturer to get a better understanding of how the protocols work"
+    href="/ak-series-lib/guides/overview/"
+  />
+  <LinkCard
+    title="File docs"
+    description="A deep dive into the currently existing code, the different API's that interface with each other and what they each do"
+    href="/ak-series-lib/reference/overview/"
+  />
+</CardGrid>

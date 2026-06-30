@@ -1,0 +1,19 @@
+---
+title: Protocol Overview
+description: How the CubeMars AK Series driver protocols work over CAN.
+---
+
+These guides distill the CubeMars AK Series manufacturer documentation into the pieces you
+need to write driver code. The full manufacturer manual lives in the repository under
+`docs/ak-series-driver-manual-v1-0-18-for-ak-2-0-robotic-actuator.pdf`.
+
+There are two distinct control protocols the driver board can speak:
+
+| Mode                         | Summary                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------ |
+| [Servo Mode](../servo-mode/) | Uses an extended 29-bit CAN ID encoding command + motor ID, with data in the payload |
+| [MIT Mode](../mit-mode/)     | Packs a single tightly-encoded CAN frame; strict send/reply behavior                 |
+
+See [Contributing](../contributing/) for the development workflow.
+
+<!-- TODO: add a short comparison of when to use each mode -->
