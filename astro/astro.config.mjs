@@ -4,7 +4,6 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
     site: 'https://docs.trickfirerobotics.com',
     base: '/ak-series-lib',
-    outDir: './dist/ak-series-lib',
     srcDir: './',
     integrations: [
         starlight({

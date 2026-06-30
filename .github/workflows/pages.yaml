@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "astro/**"
-      - ".github/workflows/pages.yml"
+      - ".github/workflows/pages.yaml"
   workflow_dispatch:
 
 permissions:
