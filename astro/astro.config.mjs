@@ -63,7 +63,6 @@ export default defineConfig({
                     items: [
                         { label: 'Code Overview', slug: 'reference/overview' },
                         { label: 'CAN Layer', slug: 'reference/can-layer' },
-                        { label: 'Protocol Layer', slug: 'reference/protocol-layer' },
                         { label: 'Motor Limits', slug: 'reference/motors' }
                     ]
                 }

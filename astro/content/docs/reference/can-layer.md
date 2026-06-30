@@ -56,6 +56,43 @@ public:
 We treat `ServoSendFrame` as a factory for our can frames, we pass it the constructors and it orders the memory as specifically needed for the protocol.
 Example code
 
+The memory ordering for these is fairly straightforward.
+`setDutyCycle()` Uses the float as a 32 bit integer and uses the first 4 bytes to pad the data.
+
+```cpp
+  f.mData[0] = static_cast<uint8_t>(duty >> 24);
+  f.mData[1] = static_cast<uint8_t>(duty >> 16);
+  f.mData[2] = static_cast<uint8_t>(duty >> 8);
+  f.mData[3] = static_cast<uint8_t>(duty);
+```
+
+All of the can frames with one line follow this same pattern all of the values are padded to the front.
+`setCurrentLoop()` uses an int32_t
+`setCurrentBrake` uses an int32_t
+`setRPM()` uses an int32_t
+`setPosition()` uses an int32_t
+
+`setOrigin()` uses an uint8_t, but `setOrigin()` is a special case command which sets the current position of the motor to the 0 position. This is the only can frame that will throw if passed an invalid argument since this specifically needs the value to be 1 or 0
+
+`setPositionAndVelo()` Has a few values, but the padding is still pretty straightforward
+
+```cpp
+  f.mData[0] = static_cast<uint8_t>(posReal >> 24);
+  f.mData[1] = static_cast<uint8_t>(posReal >> 16);
+  f.mData[2] = static_cast<uint8_t>(posReal >> 8);
+  f.mData[3] = static_cast<uint8_t>(posReal);
+
+  f.mData[4] = static_cast<uint8_t>(speedReal >> 8);
+  f.mData[5] = static_cast<uint8_t>(speedReal);
+
+  f.mData[6] = static_cast<uint8_t>(accelReal >> 8);
+  f.mData[7] = static_cast<uint8_t>(accelReal);
+```
+
+Similar pattern, just pads with more values.
+
+Example Code
+
 ```cpp
 //Create our can frame
 auto result = ServoSendFrame::setRPM(11, 1000);
