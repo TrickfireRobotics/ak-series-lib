@@ -39,4 +39,13 @@ public:
   void TearDown() override {};
 };
 
+class CanWriterTests : public testing::Test {
+protected:
+public:
+  CanWriterTests() {}
+  ~CanWriterTests() = default;
+  void SetUp() override;
+  void TearDown() override {};
+};
+
 #endif

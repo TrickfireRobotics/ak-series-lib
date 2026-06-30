@@ -46,10 +46,18 @@ static const char *errCodeToStr(ErrorCode s) {
 }
 
 namespace AKSeries {
+/*
+This should ONLY be used internally in the library
+*/
+
 template <typename T, typename U> struct Expected {
-  T success;
-  U failed;
+  union {
+    T sVal;
+    U fVal;
+  };
   bool successful;
+  Expected(T val) : sVal{val}, successful{true} {};
+  Expected(U val) : fVal{val}, successful{false} {};
 };
 
 } // namespace AKSeries
