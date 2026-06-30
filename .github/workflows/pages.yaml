@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "docs/**"
+      - "astro/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -27,11 +27,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: docs/package-lock.json
+          cache-dependency-path: astro/package-lock.json
 
       - name: Install dependencies
         run: npm ci
-        working-directory: docs
+        working-directory: astro
 
       - uses: actions/configure-pages@v5
 
@@ -41,7 +41,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/dist
+          path: astro/dist
 
   deploy:
     needs: build
