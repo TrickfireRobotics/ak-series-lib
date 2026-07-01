@@ -22,25 +22,25 @@ RUN ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime && \
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
-        python3 \
-        python3-pip \
-        python3-venv \
-        build-essential \
-        cmake \
-        ninja-build \
-        pkg-config \
-        libsocketcan-dev \
-        libgtest-dev \
-        libgmock-dev \
-        iproute2 \
-        kmod \
-        can-utils \
-        sudo \
-        curl \
-        ca-certificates \
-        clangd \
-        clang-format \
-        git && \
+    python3 \
+    python3-pip \
+    python3-venv \
+    build-essential \
+    cmake \
+    ninja-build \
+    pkg-config \
+    libsocketcan-dev \
+    libgtest-dev \
+    libgmock-dev \
+    iproute2 \
+    kmod \
+    can-utils \
+    sudo \
+    curl \
+    ca-certificates \
+    clangd \
+    clang-format \
+    git && \
     rm -rf /var/lib/apt/lists/*
 
 # --------------------------------------
@@ -64,11 +64,11 @@ WORKDIR /home/trickfire/ak-series
 CMD ["bash", "-lc", "\
     sudo modprobe vcan && \
     cmake -S . -B build -G Ninja \
-        -DBUILD_TESTING=ON \
-        -DSETUP_TEST_IFNAME=ON && \
+    -DBUILD_TESTING=ON \
+    -DSETUP_TEST_IFNAME=ON && \
     cmake --build build && \
     ctest --test-dir build --output-on-failure \
-"]
+    "]
 
 # --------------------------------------------------------------------------------------------
 # DEV - adds dev tooling on top of runtime  (devcontainer)
