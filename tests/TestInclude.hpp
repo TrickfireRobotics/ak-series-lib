@@ -5,6 +5,7 @@
 #include "Errors.hpp"
 #include "can/MIT_frame.hpp"
 #include "can/Servo_frame.hpp"
+#include "can/comms.hpp"
 #include "can/frame.hpp"
 #include <gtest/gtest.h>
 #include <memory>
