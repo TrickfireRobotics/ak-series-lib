@@ -3,4 +3,4 @@ out/
 build/
 .cache/
 tests/
-
+**/node_modules/
