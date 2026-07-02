@@ -34,7 +34,6 @@ export default defineConfig({
                 { label: "Protocol Overview", slug: "guides/overview" },
                 { label: "Servo Mode", slug: "guides/servo-mode" },
                 { label: "MIT Mode", slug: "guides/mit-mode" },
-                { label: "Contributing", slug: "guides/contributing" }
             ]
         },
         {
