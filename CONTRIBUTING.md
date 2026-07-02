@@ -1,8 +1,3 @@
----
-title: Contributing
-description: Development workflow, branch/commit conventions, and code style.
----
-
 Thanks for contributing. Consult the documentation in the repo's `docs/` folder and the
 CubeMars manufacturer PDF before writing protocol code.
 
@@ -79,6 +74,5 @@ add_executable(run_tests
 )
 ```
 
-:::note
-Use the same structure in the testing folder as the source folder, keeps the tests for each individual class easy to find
-:::
+>[!NOTE]
+> Use the same structure in the testing folder as the source folder, keeps the tests for each individual class easy to find
