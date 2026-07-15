@@ -4,4 +4,4 @@ build/
 .cache/
 tests/Testing/
 .clangd
-
+**/node_modules/

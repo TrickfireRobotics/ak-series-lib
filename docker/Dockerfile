@@ -66,11 +66,11 @@ WORKDIR /home/trickfire/ak-series
 CMD ["bash", "-lc", "\
     sudo modprobe vcan && \
     cmake -S . -B build -G Ninja \
-        -DBUILD_TESTING=ON \
-        -DSETUP_TEST_IFNAME=ON && \
+    -DBUILD_TESTING=ON \
+    -DSETUP_TEST_IFNAME=ON && \
     cmake --build build && \
     ctest --test-dir build --output-on-failure \
-"]
+    "]
 
 # --------------------------------------------------------------------------------------------
 # DEV - adds dev tooling on top of runtime  (devcontainer)

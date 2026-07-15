@@ -5,10 +5,18 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "include/**"
+      - "src/**"
+      - "tests/**"
 
   pull_request:
     branches:
       - main
+    paths:
+      - "include/**"
+      - "src/**"
+      - "tests/**"
 
 permissions:
   contents: write

@@ -1,0 +1,29 @@
+{
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+    "C_Cpp.default.cppStandard": "c++17",
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.generator": "Ninja",
+    "cmake.configureSettings": {
+        "BUILD_TESTING": "ON"
+    },
+    "editor.formatOnSave": true,
+    "editor.trimAutoWhitespace": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.exclude": {
+        "**/node_modules": true,
+        "build/": true
+    },
+    "files.associations": {
+        "*.cmake.in": "cmake",
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "xaver.clang-format"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "xaver.clang-format"
+    },
+    "[cmake]": {
+        "editor.defaultFormatter": "twxs.cmake"
+    }
+}
