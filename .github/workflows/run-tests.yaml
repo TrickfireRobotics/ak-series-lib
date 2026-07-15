@@ -47,4 +47,4 @@ jobs:
           # need this to escalate user so we can run all necessary can utils
           sudo ctest || ${cat Testing/Temporary/LastTest.log}
           cd ..
-          rm -rf build
+          sudo rm -rf build
