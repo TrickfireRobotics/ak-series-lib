@@ -251,6 +251,100 @@ analog fields, reverses the quantization with `uint_to_float`:
 - `getTemperature()` — signed temperature in `mData[6]`.
 - `getErrorCode()` — `ErrorCode` enum from `mData[7]`.
 
-## `send` — `include/can/send.hpp`
+## `comms` — `include/can/comms.hpp`
 
-Incomplete file, to be included when it will be finished
+The comms file contains one class. The `CanInterface` class which contains static member functions which manage creating and management of the actual can writer classes.
+
+Additionally with the introduction of this feature comes a new important build flag. `NUMBER_OF_CANLINES`. This sets the maximum amount of canlines that someone can manage at a time. The reasoning behind this was that canlines are not ever increasing, having a set number for a machine is usually constant and not constantly growing so there is no need to constantly write to it.
+
+#### The static member functions
+
+```cpp
+//Get the writer object
+auto writer = CanInterface::getCanInterface("can0");
+//Delete the resource
+CanInterface::deleteInterface("can0");
+```
+
+with `getCanInterface` if a writer doesnt exist then one will be created and then the resource will be returned to you. If the resource does exist it will be returned to you.
+
+One important distinction is that at the moment `CanInterface` is not multithreading safe. While sockets are safe memory accesses are not thread safe which doesnt allow for implicit multithreading safety. Make sure that you build a thread safe layer over it if need be.
+
+#### Non static member functions
+
+```cpp
+[[nodiscard]] Expected<can_frame, CanIOError> sendAndRead(can_frame &frame);
+CanIOError send(can_frame &frame);
+Expected<can_frame, CanIOError> read();
+void setPollTimeout(uint32_t pTime) { pollTime = pTime; };
+```
+
+`sendAndRead` and `read` both use a small struct inside our `Errors.hpp` file.
+
+```cpp
+template <typename T, typename U> struct Expected {
+  union {
+    T success;
+    U error;
+  };
+  bool successful;
+  Expected(T val) : success{val}, successful{true} {};
+  Expected(U val) : error{val}, successful{false} {};
+};
+```
+
+If the object successfully reads it returns the successful can frame we read from the socket. If the object fails to read from the canline then it wilreturn the appropriate value from the `CanIOError` enum.
+
+```cpp
+enum class CanIOError {
+  TIMEOUT = 0,
+  SOCKET_ERROR,
+  BIND_ERROR,
+  FAILED_WRITE,
+  FAILED_READ,
+  NO_DATA,
+  BUSY = 16,
+  RESOURCE_UNAVAILABLE = 35,
+  NO_BUFFER_SPACE = 55,
+  NONE,
+};
+```
+
+All of these values are descriptive of what is happening on the canline.
+
+If a write fails you will typically see these 3 errors `BUSY` `RESOURCE_UNAVAILABLE` or `NO_BUFFER_SPACE`, these are all pulled from the socketcan errors.
+
+#### Example usage of a writer object
+
+```cpp
+//Store this resource somewhere
+auto interface = CanInterface::getCanInterface("can0");
+can_frame f = ServoSendFrame::setCurrentLoop(10.0f);
+
+auto recv =  interface->sendAndRead(f);
+//Fake functions
+if (recv.succesful) {
+    doSomething(recv.success);
+} else {
+    logError(recv.error);
+}
+
+//Fire and forget the canframe
+interface->send(f);
+
+//Read the can frame
+auto frame = interface->read();
+if (recv.succesful) {
+    doSomething(recv.success);
+} else {
+    logError(recv.error);
+}
+
+/
+
+//Lets say your code is finished and you no longer need the object
+CanInterface::deleteInterface("can0");
+//It is a shared pointer, release the references to it
+interface.reset();
+//Let object go out of scope
+```
