@@ -32,36 +32,39 @@ extern "C" {
 #include <iostream>
 #include <memory>
 
-enum class IOError {
+enum class CanIOError {
   TIMEOUT = 0,
   SOCKET_ERROR,
   BIND_ERROR,
   FAILED_WRITE,
   FAILED_READ,
-  FAILED_POLL,
+  NO_DATA,
+  BUSY = 16,
+  RESOURCE_UNAVAILABLE = 35,
+  NO_BUFFER_SPACE = 55,
   NONE,
 };
 
 using std::shared_ptr;
 
 namespace AKSeries {
-class CanWriter {
+class CanInterface {
   struct WriterPair {
     const char *name{nullptr};
-    shared_ptr<CanWriter> ptr{nullptr};
+    shared_ptr<CanInterface> ptr{nullptr};
     int canFd;
     WriterPair() : canFd{-1} {}
-    WriterPair(const char *str, CanWriter *w, int fd)
-        : name{str}, ptr{shared_ptr<CanWriter>(w)}, canFd{fd} {}
+    WriterPair(const char *str, CanInterface *w, int fd)
+        : name{str}, ptr{shared_ptr<CanInterface>(w)}, canFd{fd} {}
   };
-  CanWriter(const char *);
+  CanInterface(const char *);
   /*
   This returns the FD for the canline file, DO NOT DISCARD
   This also should only run once per can file,
   it will error out if attempted to call on same canline
   multiple times
    */
-  [[nodiscard]] Expected<int, IOError> initCan(const char *);
+  [[nodiscard]] Expected<int, CanIOError> initCan(const char *);
   const char *canIF;
   int canFD{-1};
   uint32_t pollTime{10};
@@ -86,32 +89,33 @@ public:
   This class is a factory, we dont want people making them willy nilly and should manage the
   resources ourselves
   */
-  CanWriter() = delete;
-  static shared_ptr<CanWriter> getCanWriter(const char *canIF);
+  CanInterface() = delete;
+  static shared_ptr<CanInterface> getCanInterface(const char *canIF);
   // Must be called when you are finished with a writer/in the destructor of the motor object
-  static void deleteWriter(const char *canif);
+  static void deleteInterface(const char *canif);
   /*
   Use for mit mode preferably
   No discard because we have a method to circumvent the received frame
   which will be more performant
   */
-  [[nodiscard]] Expected<can_frame, IOError> sendAndRead(can_frame &frame);
+  [[nodiscard]] Expected<can_frame, CanIOError> sendAndRead(can_frame &frame);
   /*
   Can be used for mit mode if we dont care about the return frame
   preferably use for servo mode
   */
-  IOError send(can_frame &frame);
-  Expected<can_frame, IOError> read();
+  CanIOError send(can_frame &frame);
+  Expected<can_frame, CanIOError> read();
   void setPollTimeout(uint32_t pTime) { pollTime = pTime; };
-  ~CanWriter() = default;
+
+  ~CanInterface() = default;
   /*
    We dont want people moving or modifying the values,
-   the CanWriter should be a resource one accesses and thats it
+   the CanInterface should be a resource one accesses and thats it
    */
-  CanWriter(const CanWriter &) = delete;
-  CanWriter &operator=(const CanWriter &) = delete;
-  CanWriter &operator=(CanWriter &&) = delete;
-  CanWriter(CanWriter &&) = delete;
+  CanInterface(const CanInterface &) = delete;
+  CanInterface &operator=(const CanInterface &) = delete;
+  CanInterface &operator=(CanInterface &&) = delete;
+  CanInterface(CanInterface &&) = delete;
 };
 
 }; // namespace AKSeries

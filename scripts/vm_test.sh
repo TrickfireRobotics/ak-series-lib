@@ -22,9 +22,9 @@ multipass exec socketcan-dev -d /home/ubuntu/socketcan-testing/ -- cmake -S . -B
 multipass exec socketcan-dev -d /home/ubuntu/socketcan-testing/build/ -- make
 multipass exec socketcan-dev -d /home/ubuntu/socketcan-testing/build/ -- sudo ctest
 
-if ! $?; then
+if [[ $? != 0 ]]; then
   multipass exec socketcan-dev -- sudo ip link add dev vcan_test type vcan
-  if [[ $? == 2 ]]; then
+  if [[ $? != 0 ]]; then
     multipass exec socketcan-dev -- sudo ip link delete vcan_test
     sudo ctest
   else

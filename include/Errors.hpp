@@ -52,23 +52,13 @@ This should ONLY be used internally in the library
 
 template <typename T, typename U> struct Expected {
   union {
-    T sVal;
-    U fVal;
+    T success;
+    U error;
   };
   bool successful;
-  Expected(T val) : sVal{val}, successful{true} {};
-  Expected(U val) : fVal{val}, successful{false} {};
+  Expected(T val) : success{val}, successful{true} {};
+  Expected(U val) : error{val}, successful{false} {};
 };
-
-template <typename T> class Unexpected {};
-// TODO finish class and its implementation
-template <typename T, typename U> class Expected_Class {
-public:
-  constexpr Expected_Class(T val);
-  constexpr Expected_Class(U val);
-  constexpr Expected_Class(Unexpected<U>());
-};
-
 } // namespace AKSeries
 
 #endif

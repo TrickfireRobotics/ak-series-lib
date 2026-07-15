@@ -12,7 +12,7 @@
 #include <memory>
 
 // Purely for LSP to allow for me to access
-// internal private variables in CanWriter
+// internal private variables in CanInterface
 #ifndef BUILD_TESTING
 #define BUILD_TESTING
 #endif
@@ -47,14 +47,14 @@ public:
   void TearDown() override {};
 };
 
-class CanWriterTests : public testing::Test {
+class CanInterfaceTests : public testing::Test {
 protected:
   int socketFD;
   std::string canIfName;
 
 public:
-  CanWriterTests() {}
-  ~CanWriterTests() = default;
+  CanInterfaceTests() {}
+  ~CanInterfaceTests() = default;
   void SetUp() override;
   void TearDown() override {};
 };
