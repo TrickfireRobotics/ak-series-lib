@@ -35,6 +35,7 @@ jobs:
           cmake -S . -B build -DSETUP_TEST_IFNAME=ON -DBUILD_TESTING=ON 
           cd build
           make
-          ./run_tests
+          # need this to escalate user so we can run all necessary can utils
+          sudo ctest || ${cat Testing/Temporary/LastTest.log}
           cd ..
           rm -rf build

@@ -2,6 +2,10 @@
 #define __COMMS_AK_SERIES
 #pragma once
 
+#ifndef NUMBER_OF_CANLINES
+#define NUMBER_OF_CANLINES 2
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #include <linux/can.h>
@@ -50,14 +54,6 @@ class CanWriter {
     WriterPair(const char *str, CanWriter *w, int fd)
         : name{str}, ptr{shared_ptr<CanWriter>(w)}, canFd{fd} {}
   };
-
-  inline static int writers = 4;
-  inline static WriterPair *avlblWriters = new WriterPair[4];
-  /*
-   can0, can1, vcan0 vcan1 are typcally the 4 defaults
-   allocating some extra memory helps store these just for safety
-   */
-
   CanWriter(const char *);
   /*
   This returns the FD for the canline file, DO NOT DISCARD
@@ -70,14 +66,30 @@ class CanWriter {
   int canFD{-1};
   uint32_t pollTime{10};
 
+  /*
+   can0, can1, vcan0 vcan1 are typcally the 4 defaults
+   allocating some extra memory helps store these just for safety
+
+   I wanted to add this to reduce some compilation overhead during testing
+   saves us from adding a friend method here to enable it
+  */
+#ifndef BUILD_TESTING
+  inline static WriterPair writers[NUMBER_OF_CANLINES]{};
+
 public:
+#else
+public:
+  inline static WriterPair writers[NUMBER_OF_CANLINES]{};
+#endif
+
   /*
   This class is a factory, we dont want people making them willy nilly and should manage the
   resources ourselves
   */
-
   CanWriter() = delete;
   static shared_ptr<CanWriter> getCanWriter(const char *canIF);
+  // Must be called when you are finished with a writer/in the destructor of the motor object
+  static void deleteWriter(const char *canif);
   /*
   Use for mit mode preferably
   No discard because we have a method to circumvent the received frame
@@ -91,8 +103,7 @@ public:
   IOError send(can_frame &frame);
   Expected<can_frame, IOError> read();
   void setPollTimeout(uint32_t pTime) { pollTime = pTime; };
-  // if someone deletes a can writer it should remove itself from the list
-  ~CanWriter();
+  ~CanWriter() = default;
   /*
    We dont want people moving or modifying the values,
    the CanWriter should be a resource one accesses and thats it

@@ -60,6 +60,15 @@ template <typename T, typename U> struct Expected {
   Expected(U val) : fVal{val}, successful{false} {};
 };
 
+template <typename T> class Unexpected {};
+// TODO finish class and its implementation
+template <typename T, typename U> class Expected_Class {
+public:
+  constexpr Expected_Class(T val);
+  constexpr Expected_Class(U val);
+  constexpr Expected_Class(Unexpected<U>());
+};
+
 } // namespace AKSeries
 
 #endif

@@ -30,6 +30,9 @@ Expected<int, IOError> CanWriter::initCan(const char *str) {
   std::memset(&addr, 0, sizeof(sockaddr_can));
   addr.can_family = AF_CAN;
   addr.can_ifindex = ifr.ifr_ifru.ifru_ivalue;
+  // C style cast, techincally unsafe but since its a C struct theres no way
+  // to safely cast to the other
+
   if (::bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
     std::fprintf(stderr, "Failed to bind to can address socket");
     return Expected<int, IOError>(IOError::BIND_ERROR);
@@ -51,12 +54,14 @@ Expected<can_frame, IOError> CanWriter::sendAndRead(can_frame &frame) {
   if (pfd.revents & POLLERR || pfd.revents & POLLHUP) {
     return Expected<can_frame, IOError>(IOError::FAILED_POLL);
   }
-
-  can_frame f{};
-  std::memset(&f, 0, sizeof(can_frame));
-
-  ::read(canFD, &f, sizeof(can_frame));
-  return (Expected<can_frame, IOError>(f));
+  if (pfd.revents & POLLIN) {
+    can_frame f{};
+    std::memset(&f, 0, sizeof(can_frame));
+    ::read(canFD, &f, sizeof(can_frame));
+    return (Expected<can_frame, IOError>(f));
+  } else {
+    return Expected<can_frame, IOError>(IOError::TIMEOUT);
+  }
 }
 
 IOError CanWriter::send(can_frame &frame) {
@@ -78,71 +83,68 @@ Expected<can_frame, IOError> CanWriter::read() {
   if (pfd.revents & POLLERR || pfd.revents & POLLHUP) {
     return Expected<can_frame, IOError>(IOError::FAILED_POLL);
   }
-
-  size_t s = ::read(canFD, &f, sizeof(can_frame));
-  if (s < sizeof(can_frame)) {
-    return Expected<can_frame, IOError>(IOError::FAILED_READ);
+  if (pfd.revents & POLLIN) {
+    size_t s = ::read(canFD, &f, sizeof(can_frame));
+    if (s < sizeof(can_frame)) {
+      return Expected<can_frame, IOError>(IOError::FAILED_READ);
+    }
+    return Expected<can_frame, IOError>(f);
+  } else {
+    return Expected<can_frame, IOError>(IOError::TIMEOUT);
   }
-  return Expected<can_frame, IOError>(f);
 }
 
 // TODO
 
 std::shared_ptr<CanWriter> CanWriter::getCanWriter(const char *canIF) {
 
-  for (size_t i{0}; i < CanWriter::writers; i++) {
-    if (CanWriter::avlblWriters[i].name != nullptr &&
-        std::strcmp(CanWriter::avlblWriters[i].name, canIF) == 0) {
-      return CanWriter::avlblWriters[i].ptr;
+  for (size_t i{0}; i < NUMBER_OF_CANLINES; i++) {
+    if (CanWriter::writers[i].name != nullptr &&
+        std::strcmp(CanWriter::writers[i].name, canIF) == 0) {
+      return CanWriter::writers[i].ptr;
     }
   }
   // Else we need to make a new one
   CanWriter *wNew = new CanWriter(canIF);
   bool f{false};
   size_t i;
-  for (i = 0; i < CanWriter::writers; i++) {
-    if (CanWriter::avlblWriters[i].name == nullptr) {
+  for (i = 0; i < NUMBER_OF_CANLINES; i++) {
+    if (CanWriter::writers[i].name == nullptr) {
       WriterPair newPair{canIF, wNew, wNew->canFD};
-      CanWriter::avlblWriters[i] = newPair;
+      CanWriter::writers[i] = newPair;
+      f = true;
       break;
     }
   }
-
-  // Resize array
   if (!f) {
-    WriterPair *newPairs = new WriterPair[writers + 4];
-    std::copy(avlblWriters, avlblWriters + CanWriter::writers, newPairs);
-    delete[] avlblWriters;
-    avlblWriters = newPairs;
-    int ind = writers;
-    avlblWriters[ind] = WriterPair{canIF, wNew, wNew->canFD};
-    writers = writers + 4;
-    return avlblWriters[ind].ptr;
-  } else {
-    return avlblWriters[i].ptr;
+    std::fprintf(stderr, "Was unable to allocate space for the canline please change compile flag "
+                         "to allow for number of necessary canlines");
   }
+  return CanWriter::writers[i].ptr;
 }
 
-// TODO
-
-CanWriter::~CanWriter() {
-  size_t i;
+void CanWriter::deleteWriter(const char *canIf) {
   bool found{false};
-  for (i = 0; i < writers; i++) {
-    if (avlblWriters[i].name != nullptr && std::strcmp(avlblWriters[i].name, canIF) == 0) {
+  int i;
+  for (i = 0; i < NUMBER_OF_CANLINES; i++) {
+    if (CanWriter::writers[i].name != nullptr &&
+        std::strcmp(canIf, CanWriter::writers[i].name) == 0) {
+      found = true;
       break;
     }
   }
   if (!found) {
-    std::fprintf(
-        stderr,
-        "Failed to find the CanWriter object for %s while destroying, invalid constructor?\n",
-        canIF);
-    return;
+    std::fprintf(stderr, "Failed to delete can writer, canwriter wasnt found in internal array\n");
   }
-
-  for (int j{writers - 1}; j >= i + 1; j--) {
-    avlblWriters[j - 1] = avlblWriters[j];
+  // Grab resource for now
+  auto ptr = CanWriter::writers[i].ptr;
+  // Delete resource
+  for (int j{i}; j < NUMBER_OF_CANLINES - 1; j++) {
+    CanWriter::writers[j] = CanWriter::writers[j + 1];
   }
-  return;
+  CanWriter::writers[NUMBER_OF_CANLINES - 1] = WriterPair{};
+  // Delete resource
+  // If other pointers to it dangle resource will continue to exist but it will go out of scope when
+  // the resource does
+  ptr.reset();
 }

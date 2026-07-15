@@ -39,10 +39,12 @@ RUN apt-get update && \
         curl \
         ca-certificates \
         clangd \
+        npm \ #Needed for bashls, dont remove
         clang-format \
         git && \
     rm -rf /var/lib/apt/lists/*
 
+RUN npm install -g bash-language-server
 # --------------------------------------
 # User
 

@@ -1,3 +1,4 @@
+
 #ifndef __TEST_AK_SERIES
 #define __TEST_AK_SERIES
 #include "motors/MotorLimits.hpp"
@@ -9,6 +10,12 @@
 #include "can/frame.hpp"
 #include <gtest/gtest.h>
 #include <memory>
+
+// Purely for LSP to allow for me to access
+// internal private variables in CanWriter
+#ifndef BUILD_TESTING
+#define BUILD_TESTING
+#endif
 
 class ServoFrameTests : public testing::Test {
 protected:
@@ -42,6 +49,9 @@ public:
 
 class CanWriterTests : public testing::Test {
 protected:
+  int socketFD;
+  std::string canIfName;
+
 public:
   CanWriterTests() {}
   ~CanWriterTests() = default;
