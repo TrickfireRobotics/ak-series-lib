@@ -42,14 +42,6 @@ Expected<int, CanIOError> CanInterface::initCan(const char *str) {
 }
 
 Expected<can_frame, CanIOError> CanInterface::sendAndRead(can_frame &frame) {
-  //  size_t s = ::write(canFD, &frame, sizeof(can_frame));
-  //  if (s < sizeof(can_frame) && (errno & static_cast<int>(CanIOError::RESOURCE_UNAVAILABLE) ||
-  //                                errno & static_cast<int>(CanIOError::NO_BUFFER_SPACE) ||
-  //                                errno & static_cast<int>(CanIOError::BUSY))) {
-  //    return Expected<can_frame, CanIOError>(static_cast<CanIOError>(errno));
-  //  } else if (s < sizeof(can_frame)) {
-  //    return Expected<can_frame, CanIOError>(CanIOError::FAILED_WRITE);
-  //  }
   auto result = this->send(frame);
   if (result != CanIOError::NONE) {
     return Expected<can_frame, CanIOError>(result);
@@ -76,7 +68,6 @@ Expected<can_frame, CanIOError> CanInterface::read() {
   struct pollfd pfd;
   pfd.fd = canFD;
   pfd.events = (POLLERR | POLLHUP | POLLIN);
-  pfd.revents = (POLLERR | POLLHUP | POLLIN);
   ::poll(&pfd, 1, pollTime);
   if (pfd.revents & POLLERR || pfd.revents & POLLHUP) {
     return Expected<can_frame, CanIOError>(CanIOError::NO_DATA);
