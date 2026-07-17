@@ -253,24 +253,9 @@ analog fields, reverses the quantization with `uint_to_float`:
 
 ## `comms` — `include/can/comms.hpp`
 
-The comms file contains one class. The `CanInterface` class which contains static member functions which manage creating and management of the actual can writer classes.
+The comms file contains one class. The `CanInterface` class which manages interfacing with the actual canline.
 
-Additionally with the introduction of this feature comes a new important build flag. `NUMBER_OF_CANLINES`. This sets the maximum amount of canlines that someone can manage at a time. The reasoning behind this was that canlines are not ever increasing, having a set number for a machine is usually constant and not constantly growing so there is no need to constantly write to it.
-
-#### The static member functions
-
-```cpp
-//Get the writer object
-auto writer = CanInterface::getCanInterface("can0");
-//Delete the resource
-CanInterface::deleteInterface("can0");
-```
-
-with `getCanInterface` if a writer doesnt exist then one will be created and then the resource will be returned to you. If the resource does exist it will be returned to you.
-
-One important distinction is that at the moment `CanInterface` is not multithreading safe. While sockets are safe memory accesses are not thread safe which doesnt allow for implicit multithreading safety. Make sure that you build a thread safe layer over it if need be.
-
-#### Non static member functions
+#### Member functions
 
 ```cpp
 [[nodiscard]] Expected<can_frame, CanIOError> sendAndRead(can_frame &frame);
@@ -317,11 +302,8 @@ If a write fails you will typically see these 3 errors `BUSY` `RESOURCE_UNAVAILA
 #### Example usage of a writer object
 
 ```cpp
-//Store this resource somewhere
-auto interface = CanInterface::getCanInterface("can0");
-can_frame f = ServoSendFrame::setCurrentLoop(10.0f);
-
-auto recv =  interface->sendAndRead(f);
+auto interface = CanWriter("can0");
+auto recv =  interface.sendAndRead(f);
 //Fake functions
 if (recv.succesful) {
     doSomething(recv.success);
@@ -330,21 +312,15 @@ if (recv.succesful) {
 }
 
 //Fire and forget the canframe
-interface->send(f);
+interface.send(f);
 
 //Read the can frame
-auto frame = interface->read();
+auto frame = interface.read();
 if (recv.succesful) {
     doSomething(recv.success);
 } else {
     logError(recv.error);
 }
-
-/
-
-//Lets say your code is finished and you no longer need the object
-CanInterface::deleteInterface("can0");
-//It is a shared pointer, release the references to it
-interface.reset();
-//Let object go out of scope
+//Delete the interface at the end of the control block
+delete interface;
 ```

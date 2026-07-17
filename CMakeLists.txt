@@ -5,10 +5,6 @@ project(ak_series LANGUAGES CXX)
 option(SETUP_TEST_IFNAME "Set-up the test VCAN interface automatically" OFF)
 option(PYTHON_BINDINGS "Build python bindings" OFF)
 option(BUILD_TESTING "Builds test folder, only use for testing" OFF)
-#The amount of canlines on some piece of hardware is typically static
-#Allowing for it to be dynamic introduces memory leak issues
-set(NUMBER_OF_CANLINES 2 CACHE STRING "Number of active CAN lines")
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 

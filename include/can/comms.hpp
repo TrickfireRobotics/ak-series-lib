@@ -2,10 +2,6 @@
 #define __COMMS_AK_SERIES
 #pragma once
 
-#ifndef NUMBER_OF_CANLINES
-#define NUMBER_OF_CANLINES 2
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #include <linux/can.h>
