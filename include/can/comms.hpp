@@ -45,22 +45,13 @@ using std::shared_ptr;
 
 namespace AKSeries {
 class CanInterface {
-public:
-  CanInterface(const char *);
-  /*
-  This returns the FD for the canline file, DO NOT DISCARD
-  This also should only run once per can file,
-  it will error out if attempted to call on same canline
-  multiple times
-   */
-  [[nodiscard]] Expected<int, CanIOError> initCan(const char *);
   const char *canIF;
   int canFD{-1};
   uint32_t pollTime{10};
-  /*
-  This class is a factory, we dont want people making them willy nilly and should manage the
-  resources ourselves
-  */
+
+public:
+  CanInterface(const char *);
+  [[nodiscard]] static Expected<int, CanIOError> initCan(const char *);
   CanInterface() = delete;
   /*
 Use for mit mode preferably

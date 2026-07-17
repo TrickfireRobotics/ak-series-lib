@@ -7,7 +7,7 @@
 using AKSeries::Expected, AKSeries::CanInterface;
 
 CanInterface::CanInterface(const char *canif) {
-  auto canID = initCan(canif);
+  auto canID = CanInterface::initCan(canif);
   if (!canID.successful) {
     std::fprintf(stderr, "Failed to create CanInterface object for %s\n", canif);
     return;
