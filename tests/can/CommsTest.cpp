@@ -64,85 +64,61 @@ void TearDown() {}
 TEST_F(CanInterfaceTests, CanInterfaceTesting) {
   // TODO check can functionality tests
   using AKSeries::CanInterface;
-  auto writer = CanInterface::getCanInterface(canIfName.c_str());
+  auto writer = CanInterface(canIfName.c_str());
   can_frame f = static_cast<can_frame>(ServoSendFrame::setCurrentBrake(11, 10.0));
   can_frame cmp{};
 
-  CanIOError checkSuccess = writer->send(f);
+  CanIOError checkSuccess = writer.send(f);
   ASSERT_TRUE(checkSuccess == CanIOError::NONE);
 
   ::read(socketFD, &cmp, sizeof(can_frame));
   EXPECT_TRUE(std::memcmp(&f, &cmp, sizeof(can_frame)) == 0) << "Can frames failed";
 
   ::write(socketFD, &f, sizeof(can_frame));
-  auto recv = writer->sendAndRead(cmp);
+  auto recv = writer.sendAndRead(cmp);
   ASSERT_TRUE(recv.successful);
   ASSERT_TRUE(std::memcmp(&recv.success, &cmp, sizeof(can_frame)) == 0);
 
-  recv = writer->sendAndRead(f);
+  recv = writer.sendAndRead(f);
   ASSERT_TRUE(!recv.successful);
   ASSERT_TRUE(recv.error == CanIOError::TIMEOUT);
 
   ::write(socketFD, &f, sizeof(can_frame));
-  recv = writer->read();
+  recv = writer.read();
   ASSERT_TRUE(std::memcmp(&recv.success, &f, sizeof(can_frame)) == 0);
 
-  recv = writer->read();
+  recv = writer.read();
   ASSERT_TRUE(!recv.successful);
   ASSERT_TRUE(recv.error == CanIOError::TIMEOUT);
-  writer.reset();
 }
 
 TEST_F(CanInterfaceTests, NonBlockingTesting) {
   using AKSeries::CanInterface;
-  auto writer = CanInterface::getCanInterface(canIfName.c_str());
+  auto writer = CanInterface(canIfName.c_str());
   can_frame f = static_cast<can_frame>(ServoSendFrame::setCurrentBrake(11, 10.0));
-  writer->setPollTimeout(0);
+  writer.setPollTimeout(0);
   can_frame cmp{};
 
-  CanIOError checkSuccess = writer->send(f);
+  CanIOError checkSuccess = writer.send(f);
   ASSERT_TRUE(checkSuccess == CanIOError::NONE);
 
   ::read(socketFD, &cmp, sizeof(can_frame));
   EXPECT_TRUE(std::memcmp(&f, &cmp, sizeof(can_frame)) == 0) << "Can frames failed";
 
   ::write(socketFD, &f, sizeof(can_frame));
-  auto recv = writer->sendAndRead(cmp);
+  auto recv = writer.sendAndRead(cmp);
   ASSERT_TRUE(recv.successful);
   ASSERT_TRUE(std::memcmp(&recv.success, &cmp, sizeof(can_frame)) == 0);
 
-  recv = writer->sendAndRead(f);
+  recv = writer.sendAndRead(f);
   ASSERT_TRUE(!recv.successful);
   ASSERT_TRUE(recv.error == CanIOError::TIMEOUT);
 
   ::write(socketFD, &f, sizeof(can_frame));
-  recv = writer->read();
+  recv = writer.read();
   ASSERT_TRUE(std::memcmp(&recv.success, &f, sizeof(can_frame)) == 0);
 
-  recv = writer->read();
+  recv = writer.read();
   ASSERT_TRUE(!recv.successful);
   ASSERT_TRUE(recv.error == CanIOError::TIMEOUT);
-  writer.reset();
-}
-namespace {
-using AKSeries::CanInterface;
-bool ifInWriters(const char *c) {
-  for (int i{0}; i < NUMBER_OF_CANLINES; i++) {
-    if (CanInterface::writers->name != nullptr &&
-        std::strcmp(c, CanInterface::writers->name) == 0) {
-      return true;
-    }
-  }
-  return false;
-}
-} // namespace
-
-TEST_F(CanInterfaceTests, InternalMemoryManagement) {
-
-  using AKSeries::CanInterface;
-  auto writer = CanInterface::getCanInterface(canIfName.c_str());
-  EXPECT_TRUE(ifInWriters(canIfName.c_str()));
-  CanInterface::deleteInterface(canIfName.c_str());
-  EXPECT_FALSE(ifInWriters(canIfName.c_str()));
-  // Delete writer only checks against fake strings we inject a few fake ones to test
 }
