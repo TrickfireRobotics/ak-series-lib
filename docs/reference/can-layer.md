@@ -251,6 +251,76 @@ analog fields, reverses the quantization with `uint_to_float`:
 - `getTemperature()` — signed temperature in `mData[6]`.
 - `getErrorCode()` — `ErrorCode` enum from `mData[7]`.
 
-## `send` — `include/can/send.hpp`
+## `comms` — `include/can/comms.hpp`
 
-Incomplete file, to be included when it will be finished
+The comms file contains one class. The `CanInterface` class which manages interfacing with the actual canline.
+
+#### Member functions
+
+```cpp
+[[nodiscard]] Expected<can_frame, CanIOError> sendAndRead(can_frame &frame);
+CanIOError send(can_frame &frame);
+Expected<can_frame, CanIOError> read();
+void setPollTimeout(uint32_t pTime) { pollTime = pTime; };
+```
+
+`sendAndRead` and `read` both use a small struct inside our `Errors.hpp` file.
+
+```cpp
+template <typename T, typename U> struct Expected {
+  union {
+    T success;
+    U error;
+  };
+  bool successful;
+  Expected(T val) : success{val}, successful{true} {};
+  Expected(U val) : error{val}, successful{false} {};
+};
+```
+
+If the object successfully reads it returns the successful can frame we read from the socket. If the object fails to read from the canline then it wilreturn the appropriate value from the `CanIOError` enum.
+
+```cpp
+enum class CanIOError {
+  TIMEOUT = 0,
+  SOCKET_ERROR,
+  BIND_ERROR,
+  FAILED_WRITE,
+  FAILED_READ,
+  NO_DATA,
+  BUSY = 16,
+  RESOURCE_UNAVAILABLE = 35,
+  NO_BUFFER_SPACE = 55,
+  NONE,
+};
+```
+
+All of these values are descriptive of what is happening on the canline.
+
+If a write fails you will typically see these 3 errors `BUSY` `RESOURCE_UNAVAILABLE` or `NO_BUFFER_SPACE`, these are all pulled from the socketcan errors.
+
+#### Example usage of a writer object
+
+```cpp
+auto interface = CanWriter("can0");
+auto recv =  interface.sendAndRead(f);
+//Fake functions
+if (recv.succesful) {
+    doSomething(recv.success);
+} else {
+    logError(recv.error);
+}
+
+//Fire and forget the canframe
+interface.send(f);
+
+//Read the can frame
+auto frame = interface.read();
+if (recv.succesful) {
+    doSomething(recv.success);
+} else {
+    logError(recv.error);
+}
+//Delete the interface at the end of the control block
+delete interface;
+```

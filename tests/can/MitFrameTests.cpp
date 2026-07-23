@@ -1,5 +1,5 @@
 #include "../TestInclude.hpp"
-#include "Exceptions.hpp"
+#include "Errors.hpp"
 #include "can/MIT_frame.hpp"
 #include "motors/MotorLimits.hpp"
 #include <gtest/gtest.h>

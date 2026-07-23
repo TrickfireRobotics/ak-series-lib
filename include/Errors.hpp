@@ -45,35 +45,20 @@ static const char *errCodeToStr(ErrorCode s) {
   };
 }
 
-namespace aks {
+namespace AKSeries {
+/*
+This should ONLY be used internally in the library
+*/
 
-class invalid_call : public std::runtime_error {
-private:
-  std::string desc{};
-
-public:
-  invalid_call(const std::string &d) : std::runtime_error(d) {}
+template <typename T, typename U> struct Expected {
+  union {
+    T success;
+    U error;
+  };
+  bool successful;
+  Expected(T val) : success{val}, successful{true} {};
+  Expected(U val) : error{val}, successful{false} {};
 };
-
-class ServoException : public std::exception {
-private:
-  ErrorCode code{};
-  std::string desc{};
-
-public:
-  ServoException(const std::string err, ErrorCode s = ErrorCode::NoFault)
-      : std::exception(), desc{err}, code{s} {};
-  const char *what() {
-    if (code == ErrorCode::NoFault) {
-      return desc.c_str();
-    } else {
-      desc += ": ";
-      desc += errCodeToStr(code);
-      return desc.c_str();
-    }
-  }
-};
-
-} // namespace aks
+} // namespace AKSeries
 
 #endif
