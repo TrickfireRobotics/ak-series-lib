@@ -2,7 +2,7 @@
 #define __SERVO_AK_SERIES
 #pragma once
 
-#include "Exceptions.hpp"
+#include "Errors.hpp"
 #include "frame.hpp"
 #include <stdexcept>
 #include <stdint.h>

@@ -48,17 +48,15 @@ Most formatting is handled by the formatter on push to `main`.
 Use GTest. PRs to `main` must pass all tests, and new functionality must include tests in
 the appropriate folders.
 
-The testing workflow goes as such, and should be run inside the dev container
+> [!NOTE]
+> For testing on a non linux machine you should run something like `multipass` which is a ubuntu Virtual machine framework.
+> `socketcan` is a kernel level module and does not work in docker. The testing has been updated to reflect the new testing
 
 ```bash title="Terminal"
-cmake -S . -B build -DSETUP_TEST_IFNAME=ON -DBUILD_TESTING=ON
-cd build
-make
-#run the test executable
-./run_tests
+./scripts/vm_test.sh
 ```
 
-This will build all of the files, make sure to include all of you C++ files in the cmake file in both of these spots
+This uses multipass to build and run the tests within the virtual machine all the output will be forwarded to your local terminal and on failure it will output the full logs of the testing framework
 
 ```cmake
 target_sources(ak_series_lib
@@ -74,5 +72,5 @@ add_executable(run_tests
 )
 ```
 
->[!NOTE]
+> [!NOTE]
 > Use the same structure in the testing folder as the source folder, keeps the tests for each individual class easy to find

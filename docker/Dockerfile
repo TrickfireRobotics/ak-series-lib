@@ -22,27 +22,29 @@ RUN ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime && \
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
-    python3 \
-    python3-pip \
-    python3-venv \
-    build-essential \
-    cmake \
-    ninja-build \
-    pkg-config \
-    libsocketcan-dev \
-    libgtest-dev \
-    libgmock-dev \
-    iproute2 \
-    kmod \
-    can-utils \
-    sudo \
-    curl \
-    ca-certificates \
-    clangd \
-    clang-format \
-    git && \
+        python3 \
+        python3-pip \
+        python3-venv \
+        build-essential \
+        cmake \
+        ninja-build \
+        pkg-config \
+        libsocketcan-dev \
+        libgtest-dev \
+        libgmock-dev \
+        iproute2 \
+        kmod \
+        can-utils \
+        sudo \
+        curl \
+        ca-certificates \
+        clangd \
+        npm \ #Needed for bashls, dont remove
+        clang-format \
+        git && \
     rm -rf /var/lib/apt/lists/*
 
+RUN npm install -g bash-language-server
 # --------------------------------------
 # User
 

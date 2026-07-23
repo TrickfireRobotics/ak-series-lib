@@ -1,13 +1,21 @@
+
 #ifndef __TEST_AK_SERIES
 #define __TEST_AK_SERIES
 #include "motors/MotorLimits.hpp"
 #pragma once
-#include "Exceptions.hpp"
+#include "Errors.hpp"
 #include "can/MIT_frame.hpp"
 #include "can/Servo_frame.hpp"
+#include "can/comms.hpp"
 #include "can/frame.hpp"
 #include <gtest/gtest.h>
 #include <memory>
+
+// Purely for LSP to allow for me to access
+// internal private variables in CanInterface
+#ifndef BUILD_TESTING
+#define BUILD_TESTING
+#endif
 
 class ServoFrameTests : public testing::Test {
 protected:
@@ -35,6 +43,18 @@ protected:
 public:
   MitFrameTests() {}
   ~MitFrameTests() = default;
+  void SetUp() override;
+  void TearDown() override {};
+};
+
+class CanInterfaceTests : public testing::Test {
+protected:
+  int socketFD;
+  std::string canIfName;
+
+public:
+  CanInterfaceTests() {}
+  ~CanInterfaceTests() = default;
   void SetUp() override;
   void TearDown() override {};
 };
