@@ -2,6 +2,8 @@ compile_commands.json
 out/
 build/
 .cache/
+.trickfire-docs/
+dist/
 tests/Testing/
 .clangd
 **/node_modules/

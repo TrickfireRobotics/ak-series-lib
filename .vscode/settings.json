@@ -11,8 +11,8 @@
     "files.trimTrailingWhitespace": true,
     "files.insertFinalNewline": true,
     "files.exclude": {
-        "**/node_modules": true,
-        "build/": true
+        "build/": true,
+        ".cache/": true
     },
     "files.associations": {
         "*.cmake.in": "cmake",
