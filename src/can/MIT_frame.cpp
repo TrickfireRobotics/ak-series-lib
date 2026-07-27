@@ -55,7 +55,7 @@ void MitSendFrame::padData() {
   mData[7] = static_cast<uint8_t>(current);
 }
 
-MitRecvFrame::MitRecvFrame(const can_frame &frame, AkSeriesMotors motor)
+MitRecvFrame::MitRecvFrame(const can_frame &frame, AKSeriesMotor motor)
     : Frame(frame.can_id), mMotor{motor}, mLims{motorRunLimits[static_cast<uint8_t>(mMotor)]} {
   std::copy(&frame.data[0], &frame.data[8], mData.begin());
 }
