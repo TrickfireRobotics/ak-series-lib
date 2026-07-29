@@ -21,28 +21,26 @@ void beginMitMode(canid_t can_id);
 
 class MitSendFrame : public Frame {
 private:
-  AKSeriesMotor mMotor{};
   const MotorRunLimits &mLims;
   void padData();
 
 public:
   MitSendFrame() = delete;
   MitRunSettings *mSettings{nullptr};
-  explicit MitSendFrame(canid_t can_id, AKSeriesMotor motor, MitRunSettings *settings = nullptr)
-      : Frame(can_id), mMotor{motor},
-        mSettings{settings == nullptr ? new MitRunSettings() : settings},
-        mLims{motorRunLimits[static_cast<uint8_t>(mMotor)]} {}
+  explicit MitSendFrame(canid_t can_id, AKSeriesMotor motor, MitRunSettings *settings = nullptr);
+  explicit MitSendFrame(canid_t can_id, const MotorRunLimits &lims,
+                        MitRunSettings *settings = nullptr);
   explicit operator can_frame();
 };
 
 class MitRecvFrame : public Frame {
 private:
-  AKSeriesMotor mMotor;
   const MotorRunLimits &mLims;
 
 public:
   MitRecvFrame() = delete;
   MitRecvFrame(const can_frame &frame, AKSeriesMotor motor);
+  MitRecvFrame(const can_frame &frame, const MotorRunLimits &lims);
   uint8_t getId();
   float getPosition();
   float getCurrent();

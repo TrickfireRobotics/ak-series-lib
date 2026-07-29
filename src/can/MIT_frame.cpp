@@ -1,5 +1,6 @@
 #include "can/MIT_frame.hpp"
 #include "motors/MotorLimits.hpp"
+#include "motors/Motors.hpp"
 
 enum class EnterMitMode { EnterMotorControlMode = 0, ExitMotorControlMode, SetCurrentMotorPositon };
 
@@ -26,6 +27,14 @@ float uint_to_float(int x_int, float x_min, float x_max, int bits) {
 }
 }; // namespace
 
+MitSendFrame::MitSendFrame(canid_t can_id, AKSeriesMotor motor, MitRunSettings *settings)
+    : Frame(can_id), mLims{motorRunLimits[static_cast<uint8_t>(motor)]},
+      mSettings{settings == nullptr ? new MitRunSettings() : settings} {}
+
+MitSendFrame::MitSendFrame(canid_t can_id, const MotorRunLimits &lims, MitRunSettings *settings)
+    : Frame(can_id), mLims{lims}, mSettings{settings == nullptr ? new MitRunSettings() : settings} {
+}
+
 MitSendFrame::operator can_frame() {
   padData();
   can_frame frame{};
@@ -36,8 +45,6 @@ MitSendFrame::operator can_frame() {
 }
 
 void MitSendFrame::padData() {
-  MotorRunLimits mLims = motorRunLimits[static_cast<uint8_t>(mMotor)];
-
   uint16_t pos = float_to_uint(mSettings->position, -mLims.pos, mLims.pos, 16);
   uint16_t speed = float_to_uint(mSettings->speed, -mLims.speed, mLims.speed, 12);
   uint16_t current = float_to_uint(mSettings->current, -mLims.torque, mLims.torque, 12);
@@ -56,7 +63,11 @@ void MitSendFrame::padData() {
 }
 
 MitRecvFrame::MitRecvFrame(const can_frame &frame, AKSeriesMotor motor)
-    : Frame(frame.can_id), mMotor{motor}, mLims{motorRunLimits[static_cast<uint8_t>(mMotor)]} {
+    : Frame(frame.can_id), mLims{motorRunLimits[static_cast<uint8_t>(motor)]} {
+  std::copy(&frame.data[0], &frame.data[8], mData.begin());
+}
+MitRecvFrame::MitRecvFrame(const can_frame &frame, const MotorRunLimits &lims)
+    : Frame(frame.can_id), mLims{lims} {
   std::copy(&frame.data[0], &frame.data[8], mData.begin());
 }
 
