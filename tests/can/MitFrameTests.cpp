@@ -1,9 +1,9 @@
 #include "../TestInclude.hpp"
 #include "Errors.hpp"
 #include "can/MIT_frame.hpp"
-#include "motors/MotorLimits.hpp"
+#include "motors/Motors.hpp"
 #include <gtest/gtest.h>
-#include <memory>
+
 namespace {
 float uintToFloat(int32_t num, float nLims, float pLims, int bits) {
   //
@@ -23,7 +23,7 @@ uint32_t floatToUint(float num, float nLims, float pLims, int bits) {
 }; // namespace
 
 void MitFrameTests::SetUp() {
-  uint8_t ind = static_cast<uint8_t>(AkSeriesMotors::AK10_9);
+  uint8_t ind = static_cast<uint8_t>(AKSeriesMotor::AK10_9);
   runLimits = motorRunLimits[ind];
 
   const float position = runLimits.pos - 5.0f;
@@ -36,7 +36,7 @@ void MitFrameTests::SetUp() {
 
   mitRunSettings = std::make_unique<MitRunSettings>(position, speed, current, kp, kd);
 
-  sendFrame = std::make_unique<MitSendFrame>(11, AkSeriesMotors::AK10_9, runSettings);
+  sendFrame = std::make_unique<MitSendFrame>(11, AKSeriesMotor::AK10_9, runSettings);
 
   id = 11;
   int32_t fPos{1000};
@@ -46,7 +46,6 @@ void MitFrameTests::SetUp() {
   fakeCurrent = uintToFloat(fCurr, -runLimits.torque, runLimits.torque, 12);
   fakeTemp = -10;
   fakeError = ErrorCode::OverTemperature;
-
   // Set this up to compare outputs later
   const int32_t posWire = fPos << 4;
   can_frame f{};
@@ -58,7 +57,7 @@ void MitFrameTests::SetUp() {
   f.data[5] = static_cast<uint8_t>(fCurr);
   f.data[6] = static_cast<uint8_t>(fakeTemp);
   f.data[7] = static_cast<uint8_t>(fakeError);
-  recvFrame = std::make_unique<MitRecvFrame>(f, AkSeriesMotors::AK10_9);
+  recvFrame = std::make_unique<MitRecvFrame>(f, AKSeriesMotor::AK10_9);
 }
 
 TEST_F(MitFrameTests, SendFrameTests) {

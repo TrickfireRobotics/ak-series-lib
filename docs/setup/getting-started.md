@@ -8,8 +8,8 @@ Clone the repository, set up your build environment, then build the library with
 ## Clone the repository
 
 ```bash title="Terminal"
-git clone https://github.com/TrickfireRobotics/ak-series-lib.git
-cd ak-series-lib
+git clone https://github.com/TrickfireRobotics/ak_series.git
+cd ak_series
 ```
 
 :::caution

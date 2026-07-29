@@ -12,37 +12,23 @@ extern "C" {
 
 #include "Errors.hpp"
 #include "can/frame.hpp"
-#include "motors/MotorLimits.hpp"
+#include "motors/Motors.hpp"
 
 #define LOW4BITS (15)
 #define HIGH4BITS (15 << 4)
-
-typedef struct MitRunSettings {
-  // Rads
-  float position{};
-  // Rads/s
-  float speed{};
-  // current
-  float current{};
-  float KP{};
-  float KD{};
-  MitRunSettings(float pos, float sp, float curr, float P, float D)
-      : position{pos}, speed{sp}, current{curr}, KP{P}, KD{D} {}
-  MitRunSettings() : position{0.0f}, speed{0.0f}, current{0.0f}, KP{0.0f}, KD{0.0f} {}
-} MitRunSettings;
 
 void beginMitMode(canid_t can_id);
 
 class MitSendFrame : public Frame {
 private:
-  AkSeriesMotors mMotor{};
+  AKSeriesMotor mMotor{};
   const MotorRunLimits &mLims;
   void padData();
 
 public:
   MitSendFrame() = delete;
   MitRunSettings *mSettings{nullptr};
-  explicit MitSendFrame(canid_t can_id, AkSeriesMotors motor, MitRunSettings *settings = nullptr)
+  explicit MitSendFrame(canid_t can_id, AKSeriesMotor motor, MitRunSettings *settings = nullptr)
       : Frame(can_id), mMotor{motor},
         mSettings{settings == nullptr ? new MitRunSettings() : settings},
         mLims{motorRunLimits[static_cast<uint8_t>(mMotor)]} {}
@@ -51,12 +37,12 @@ public:
 
 class MitRecvFrame : public Frame {
 private:
-  AkSeriesMotors mMotor;
+  AKSeriesMotor mMotor;
   const MotorRunLimits &mLims;
 
 public:
   MitRecvFrame() = delete;
-  MitRecvFrame(const can_frame &frame, AkSeriesMotors motor);
+  MitRecvFrame(const can_frame &frame, AKSeriesMotor motor);
   uint8_t getId();
   float getPosition();
   float getCurrent();

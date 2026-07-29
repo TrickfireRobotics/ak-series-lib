@@ -137,7 +137,7 @@ Each of the function headers describe what value we are grabbing from the receiv
 Like the Servo frame, the MIT frame is split into `MitSendFrame` and `MitRecvFrame`. MIT mode
 packs floating point control values (position, speed, current, and the `KP`/`KD` gains) into the
 8-byte CAN payload by quantizing each value into a fixed number of bits. Because the valid range of
-each field depends on the motor, both classes take an `AkSeriesMotors` enum and look up the
+each field depends on the motor, both classes take an `AKSeriesMotor` enum and look up the
 matching `MotorRunLimits` (see `include/motors/MotorLimits.hpp`).
 
 ### `MitRunSettings`
@@ -161,14 +161,14 @@ typedef struct MitRunSettings {
 ```cpp
 class MitSendFrame : public Frame {
 private:
-  AkSeriesMotors mMotor{};
+  AKSeriesMotor mMotor{};
   const MotorRunLimits &mLims;
   void padData();
 
 public:
   MitSendFrame() = delete;
   MitRunSettings *mSettings{nullptr};
-  explicit MitSendFrame(canid_t can_id, AkSeriesMotors motor,
+  explicit MitSendFrame(canid_t can_id, AKSeriesMotor motor,
                         MitRunSettings *settings = nullptr);
   explicit operator can_frame();
 };
@@ -210,7 +210,7 @@ Example code
 ```cpp
 // Position 1.0 rad, speed 0, current 0, KP 50, KD 1
 MitRunSettings settings{1.0f, 0.0f, 0.0f, 50.0f, 1.0f};
-MitSendFrame frame{11, AkSeriesMotors::AK80_9, &settings};
+MitSendFrame frame{11, AKSeriesMotor::AK80_9, &settings};
 // Example send API
 sendCanFrame(static_cast<can_frame>(frame));
 ```
@@ -224,12 +224,12 @@ sends the special enter-control-mode frame (`0xFF … 0xFC`); the protocol also 
 ```cpp
 class MitRecvFrame : public Frame {
 private:
-  AkSeriesMotors mMotor;
+  AKSeriesMotor mMotor;
   const MotorRunLimits &mLims;
 
 public:
   MitRecvFrame() = delete;
-  MitRecvFrame(const can_frame &frame, AkSeriesMotors motor);
+  MitRecvFrame(const can_frame &frame, AKSeriesMotor motor);
   uint8_t getId();
   float getPosition();
   float getCurrent();
