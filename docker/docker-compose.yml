@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------------
-# ak_series container services
+# ak-series container services
 #
 #   sim   - interactive runtime shell (existing simulation entrypoint)
 #   test  - one-shot build + ctest run against a virtual CAN interface (vcan_test)

@@ -39,7 +39,8 @@ RUN apt-get update && \
         curl \
         ca-certificates \
         clangd \
-        npm \ #Needed for bashls, dont remove
+        # Needed for bashls, dont remove
+        npm \
         clang-format \
         git && \
     rm -rf /var/lib/apt/lists/*
