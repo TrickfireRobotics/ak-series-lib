@@ -6,9 +6,9 @@ description: The tightly-packed single-frame CAN protocol used in MIT mode.
 MIT mode is designed to be simple and compact: it uses a single CAN frame with tightly
 packed fields. The motor address is sent as the first 11 bits.
 
-:::note
-MIT mode is send and receive. When we fire off a command MIT mode fires back with its information.
-:::
+<Callout type="info" title="Note">
+    MIT mode is send and receive. When we fire off a command MIT mode fires back with its information.
+</Callout>
 
 ## Enabling MIT mode
 
@@ -48,4 +48,4 @@ Motor position is an `int16`; every other field is an `int12`.
 | `Data[6]` | Motor temperature                             |
 | `Data[7]` | Motor error byte                              |
 
-<!-- TODO: document scaling factors and value ranges for each field -->
+{/* TODO: document scaling factors and value ranges for each field */}
