@@ -9,24 +9,25 @@ using namespace AKSeries;
 AKSeriesInterface::AKSeriesInterface(const char *canif)
     : canInterface{std::shared_ptr<CanInterface>(new CanInterface(canif))} {}
 
-Motor AKSeriesInterface::createMotor(AKSeriesMotor motor, uint32_t canID) {
-  Motor m(motor, canID, canInterface);
-  return m;
-}
-Motor AKSeriesInterface::createMotor(const MotorRunLimits *motor, uint32_t canID) {
-  if (motor == nullptr) {
-    throw std::invalid_argument("Invalid argument passed to create motor object, please pass a "
-                                "valid pointer `MotorRunLimits` object");
-  }
-  Motor m(motor, canID, canInterface);
-  return m;
-}
-
 Motor::Motor(AKSeriesMotor motor, uint32_t canId, std::shared_ptr<CanInterface> interface)
     : mInterface{interface}, mLims{&motorRunLimits[static_cast<uint8_t>(motor)]}, mCanId{canId} {}
 
 Motor::Motor(const MotorRunLimits *lims, uint32_t canId, std::shared_ptr<CanInterface> interface)
     : mInterface{interface}, mLims{lims}, mCanId{canId} {}
+
+MitModeMotor AKSeriesInterface::createMitMotor(const AKSeriesMotor motor, uint32_t canId) {
+  return MitModeMotor(motor, canId, canInterface);
+}
+MitModeMotor AKSeriesInterface::createMitMotor(const MotorRunLimits *lims, uint32_t canId) {
+  return MitModeMotor(lims, canId, canInterface);
+}
+
+ServoModeMotor AKSeriesInterface::createServoMotor(const AKSeriesMotor motor, uint32_t canId) {
+  return ServoModeMotor(motor, canId, canInterface);
+}
+ServoModeMotor AKSeriesInterface::createServoMotor(const MotorRunLimits *lims, uint32_t canId) {
+  return ServoModeMotor(lims, canId, canInterface);
+}
 
 // TODO finish implementing both MIT and servo mode binding
 

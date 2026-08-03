@@ -14,8 +14,6 @@ namespace AKSeries {
 class AKSeriesInterface;
 
 class Motor {
-  friend class AKSeriesInterface;
-
 protected:
   std::shared_ptr<CanInterface> mInterface;
   Motor(AKSeriesMotor motor, uint32_t canId, std::shared_ptr<CanInterface> interface);
@@ -33,12 +31,25 @@ public:
 };
 
 class MitModeMotor : public Motor {
+  friend class AKSeriesInterface;
+  MitModeMotor(AKSeriesMotor motor, uint32_t canId, std::shared_ptr<CanInterface> interface)
+      : Motor(motor, canId, interface) {}
+  MitModeMotor(const MotorRunLimits *motor, uint32_t canId, std::shared_ptr<CanInterface> interface)
+      : Motor(motor, canId, interface) {}
+
 public:
   [[nodiscard]] std::optional<MitRecvFrame> sendAndRecieve(MitRunSettings &);
   void send(MitRunSettings &);
 };
 
 class ServoModeMotor : public Motor {
+  friend class AKSeriesInterface;
+  ServoModeMotor(AKSeriesMotor motor, uint32_t canId, std::shared_ptr<CanInterface> interface)
+      : Motor(motor, canId, interface) {}
+  ServoModeMotor(const MotorRunLimits *motor, uint32_t canId,
+                 std::shared_ptr<CanInterface> interface)
+      : Motor(motor, canId, interface) {}
+
 public:
   void sendDutyCycle(float dutyCycle);
   void sendCurrentLoop(float currentLoop);
@@ -53,10 +64,13 @@ class AKSeriesInterface {
   std::shared_ptr<CanInterface> canInterface;
 
 public:
-  AKSeriesInterface(const char *canif);
+  explicit AKSeriesInterface(const char *canif);
   AKSeriesInterface() = delete;
-  Motor createMotor(AKSeriesMotor motor, uint32_t);
-  Motor createMotor(const MotorRunLimits *motor, uint32_t);
+
+  MitModeMotor createMitMotor(const AKSeriesMotor, uint32_t);
+  MitModeMotor createMitMotor(const MotorRunLimits *, uint32_t);
+  ServoModeMotor createServoMotor(const AKSeriesMotor, uint32_t);
+  ServoModeMotor createServoMotor(const MotorRunLimits *, uint32_t);
 
   AKSeriesInterface(const AKSeriesInterface &);
   AKSeriesInterface &operator=(const AKSeriesInterface &);
