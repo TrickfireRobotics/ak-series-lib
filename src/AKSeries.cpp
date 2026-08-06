@@ -8,6 +8,13 @@
 using namespace AKSeries;
 AKSeriesInterface::AKSeriesInterface(const char *canif)
     : canInterface{std::shared_ptr<CanInterface>(new CanInterface(canif))} {}
+AKSeriesInterface::~AKSeriesInterface() {
+  if (canInterface.use_count() != 0) {
+    throw std::runtime_error("Invalid call, the can Interface still has some references. Make sure "
+                             "to destroy motor objects first in destructor");
+  }
+  canInterface.reset();
+}
 
 Motor::Motor(AKSeriesMotor motor, uint32_t canId, std::shared_ptr<CanInterface> interface)
     : mInterface{interface}, mLims{&motorRunLimits[static_cast<uint8_t>(motor)]}, mCanId{canId} {}
@@ -19,6 +26,10 @@ MitModeMotor AKSeriesInterface::createMitMotor(const AKSeriesMotor motor, uint32
   return MitModeMotor(motor, canId, canInterface);
 }
 MitModeMotor AKSeriesInterface::createMitMotor(const MotorRunLimits *lims, uint32_t canId) {
+  if (lims == nullptr) {
+    throw std::invalid_argument(
+        "Motor run limits passed to MitModeMotor object was null, pass valid run limits");
+  }
   return MitModeMotor(lims, canId, canInterface);
 }
 
@@ -26,6 +37,10 @@ ServoModeMotor AKSeriesInterface::createServoMotor(const AKSeriesMotor motor, ui
   return ServoModeMotor(motor, canId, canInterface);
 }
 ServoModeMotor AKSeriesInterface::createServoMotor(const MotorRunLimits *lims, uint32_t canId) {
+  if (lims == nullptr) {
+    throw std::invalid_argument(
+        "Motor run limits passed to ServoModeMotor object was null, pass valid run limits");
+  }
   return ServoModeMotor(lims, canId, canInterface);
 }
 
@@ -53,6 +68,10 @@ void MitModeMotor::send(MitRunSettings &settings) {
 }
 
 void ServoModeMotor::sendDutyCycle(float dutyCycle) {
+  if (dutyCycle < -mLims->torque || dutyCycle > mLims->torque) {
+    std::fprintf(stderr, "Argument for PLACEHOLDER was invalid, rounding to limits");
+    dutyCycle = mLims->torque < dutyCycle ? mLims->torque : -mLims->torque;
+  }
   ServoSendFrame f = ServoSendFrame::setDutyCycle(mCanId, dutyCycle);
   can_frame sf = static_cast<can_frame>(f);
   CanIOError err = this->mInterface->send(sf);
@@ -62,6 +81,10 @@ void ServoModeMotor::sendDutyCycle(float dutyCycle) {
 }
 
 void ServoModeMotor::sendCurrentLoop(float currentLoop) {
+  if (currentLoop < -mLims->torque || currentLoop > mLims->torque) {
+    std::fprintf(stderr, "Argument for current loop was invalid, rounding to limits");
+    currentLoop = mLims->torque < currentLoop ? mLims->torque : -mLims->torque;
+  }
   ServoSendFrame f = ServoSendFrame::setCurrentLoop(mCanId, currentLoop);
   can_frame sf = static_cast<can_frame>(f);
   CanIOError err = this->mInterface->send(sf);
@@ -71,6 +94,11 @@ void ServoModeMotor::sendCurrentLoop(float currentLoop) {
 }
 
 void ServoModeMotor::sendCurrentBrake(float currentBrake) {
+  if (currentBrake < -mLims->torque || currentBrake > mLims->torque) {
+    std::fprintf(stderr, "Argument for current brake was invalid, rounding to limits");
+    currentBrake = mLims->torque < currentBrake ? mLims->torque : -mLims->torque;
+  }
+
   ServoSendFrame f = ServoSendFrame::setCurrentBrake(mCanId, currentBrake);
   can_frame sf = static_cast<can_frame>(f);
   CanIOError err = this->mInterface->send(sf);
@@ -80,6 +108,11 @@ void ServoModeMotor::sendCurrentBrake(float currentBrake) {
 }
 
 void ServoModeMotor::sendRPM(float rpm) {
+  if (rpm < -mLims->speed || rpm > mLims->speed) {
+    std::fprintf(stderr, "Argument for rpm was invalid, rounding to limits");
+    rpm = mLims->speed < rpm ? mLims->speed : -mLims->speed;
+  }
+
   ServoSendFrame f = ServoSendFrame::setRPM(mCanId, rpm);
   can_frame sf = static_cast<can_frame>(f);
   CanIOError err = this->mInterface->send(sf);
@@ -89,6 +122,10 @@ void ServoModeMotor::sendRPM(float rpm) {
 }
 
 void ServoModeMotor::sendPosition(float pos) {
+  if (pos < -mLims->pos || pos > mLims->pos) {
+    std::fprintf(stderr, "Argument for pos was invalid, rounding to limits");
+    pos = mLims->pos < pos ? mLims->pos : -mLims->pos;
+  }
   ServoSendFrame f = ServoSendFrame::setPosition(mCanId, pos);
   can_frame sf = static_cast<can_frame>(f);
   CanIOError err = this->mInterface->send(sf);
@@ -107,10 +144,28 @@ void ServoModeMotor::sendOrigin(uint8_t originMode) {
 }
 
 void ServoModeMotor::sendPositionAndVelo(float pos, float speed, float accel) {
+  if (pos < -mLims->pos || pos > mLims->pos) {
+    std::fprintf(stderr, "Argument for pos was invalid, rounding to limits");
+    pos = mLims->pos < pos ? mLims->pos : -mLims->pos;
+  }
+  if (speed < -mLims->speed || speed > mLims->speed) {
+    std::fprintf(stderr, "Argument for speed was invalid, rounding to limits");
+    speed = mLims->speed < speed ? mLims->speed : -mLims->speed;
+  }
+  // Accel check gets done in the constructor for the object, ignoring
   ServoSendFrame f = ServoSendFrame::setPositionAndVelo(mCanId, pos, speed, accel);
   can_frame sf = static_cast<can_frame>(f);
   CanIOError err = this->mInterface->send(sf);
   if (err != CanIOError::NONE) {
     std::fprintf(stderr, "IOError in the received can frame, logging");
   }
+}
+
+std::optional<ServoRecvFrame> AKSeriesInterface::readServoFrame() {
+  auto f = canInterface->read();
+  if (!f.successful) {
+    std::fprintf(stderr, "IOError in the received can frame, logging");
+    return std::nullopt;
+  }
+  return ServoRecvFrame(f.success);
 }

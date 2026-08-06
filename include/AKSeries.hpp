@@ -3,14 +3,14 @@
 #pragma once
 #include <Errors.hpp>
 #include <can/MIT_frame.hpp>
-#include <can/comms.hpp>
+#include <can/Servo_frame.hpp>
 #include <memory>
 #include <motors/Motors.hpp>
 #include <optional>
 #include <stdint.h>
 
 namespace AKSeries {
-
+class CanInterface;
 class AKSeriesInterface;
 
 class Motor {
@@ -71,12 +71,11 @@ public:
   MitModeMotor createMitMotor(const MotorRunLimits *, uint32_t);
   ServoModeMotor createServoMotor(const AKSeriesMotor, uint32_t);
   ServoModeMotor createServoMotor(const MotorRunLimits *, uint32_t);
-
   AKSeriesInterface(const AKSeriesInterface &);
   AKSeriesInterface &operator=(const AKSeriesInterface &);
   AKSeriesInterface(AKSeriesInterface &&) noexcept;
   AKSeriesInterface &operator=(AKSeriesInterface &&) noexcept;
-
+  std::optional<ServoRecvFrame> readServoFrame();
   // Be careful NOT to delete the resource
   // Additionally shouldnt be allowed to delete itself if motors still exist in scope
   ~AKSeriesInterface();
