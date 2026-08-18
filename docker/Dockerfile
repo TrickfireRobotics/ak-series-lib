@@ -20,21 +20,17 @@ RUN ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime && \
 # --------------------------------------
 # Build + test toolchain (SocketCAN, GTest, vcan tooling)
 
+# The build/test package set is shared with scripts/vm_test.sh via
+# scripts/deps.txt so the container and the Multipass VM cannot drift apart.
+# Editing deps.txt intentionally invalidates this layer.
+COPY scripts/deps.txt /tmp/deps.txt
+
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
+        $(grep -vE '^[[:space:]]*(#|$)' /tmp/deps.txt) \
         python3 \
         python3-pip \
         python3-venv \
-        build-essential \
-        cmake \
-        ninja-build \
-        pkg-config \
-        libsocketcan-dev \
-        libgtest-dev \
-        libgmock-dev \
-        iproute2 \
-        kmod \
-        can-utils \
         sudo \
         curl \
         ca-certificates \
