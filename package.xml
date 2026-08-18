@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>ak_series</name>
+  <name>ak-series</name>
   <version>0.1.0</version>
   <description>A motor driver for ak-series Cubemars motors.</description>
   <maintainer email="trickfirerobotics@gmail.com">Trickfire robotics</maintainer>
   <license>Apache</license>
-  <url type="bugtracker">https://github.com/ak_series/issues</url>
+  <url type="bugtracker">https://github.com/ak-series/issues</url>
   <author email="calin.prutean@gmail.com">Calin Prutean</author>
   <!-- buildtool_depend: dependencies of the build process -->
   <buildtool_depend>ament_cmake</buildtool_depend>
