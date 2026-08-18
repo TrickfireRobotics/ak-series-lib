@@ -1,0 +1,17 @@
+# Build + test dependencies for ak-series (Ubuntu 24.04).
+#
+# Consumed by both scripts/vm_test.sh and docker/Dockerfile so the Multipass VM
+# and the container cannot drift apart. Edit here only.
+#
+# Container-only dev tooling (python3, clangd, npm, ...) stays inline in the
+# Dockerfile -- the VM has no use for it.
+build-essential
+cmake
+ninja-build
+pkg-config
+libsocketcan-dev
+libgtest-dev
+libgmock-dev
+iproute2
+kmod
+can-utils
