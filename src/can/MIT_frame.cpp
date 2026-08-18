@@ -1,5 +1,4 @@
 #include "can/MIT_frame.hpp"
-#include "motors/MotorLimits.hpp"
 #include "motors/Motors.hpp"
 
 enum class EnterMitMode { EnterMotorControlMode = 0, ExitMotorControlMode, SetCurrentMotorPositon };
