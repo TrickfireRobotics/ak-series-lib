@@ -8,12 +8,19 @@
 using namespace AKSeries;
 AKSeriesInterface::AKSeriesInterface(const char *canif)
     : canInterface{std::shared_ptr<CanInterface>(new CanInterface(canif))} {}
-AKSeriesInterface::~AKSeriesInterface() {
-  if (canInterface.use_count() != 0) {
-    throw std::runtime_error("Invalid call, the can Interface still has some references. Make sure "
-                             "to destroy motor objects first in destructor");
-  }
-  canInterface.reset();
+
+AKSeriesInterface::~AKSeriesInterface() { canInterface.reset(); }
+
+AKSeriesInterface::AKSeriesInterface(AKSeriesInterface &&other) noexcept {
+  canInterface = other.canInterface;
+  other.canInterface.reset();
+}
+
+AKSeriesInterface &AKSeriesInterface::operator=(AKSeriesInterface &&other) noexcept {
+  AKSeriesInterface tmp(std::move(other));
+  this->canInterface = tmp.canInterface;
+  tmp.canInterface.reset();
+  return *this;
 }
 
 Motor::Motor(AKSeriesMotor motor, uint32_t canId, std::shared_ptr<CanInterface> interface)

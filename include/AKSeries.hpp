@@ -71,10 +71,11 @@ public:
   MitModeMotor createMitMotor(const MotorRunLimits *, uint32_t);
   ServoModeMotor createServoMotor(const AKSeriesMotor, uint32_t);
   ServoModeMotor createServoMotor(const MotorRunLimits *, uint32_t);
-  AKSeriesInterface(const AKSeriesInterface &);
-  AKSeriesInterface &operator=(const AKSeriesInterface &);
+  AKSeriesInterface(const AKSeriesInterface &) = delete;
+  AKSeriesInterface &operator=(const AKSeriesInterface &) = delete;
   AKSeriesInterface(AKSeriesInterface &&) noexcept;
   AKSeriesInterface &operator=(AKSeriesInterface &&) noexcept;
+
   std::optional<ServoRecvFrame> readServoFrame();
   // Be careful NOT to delete the resource
   // Additionally shouldnt be allowed to delete itself if motors still exist in scope
