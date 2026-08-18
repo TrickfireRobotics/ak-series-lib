@@ -101,9 +101,9 @@ sendCanFrame(static_cast<can_frame>(result));
 ```
 
 `ServoRecvFrame` works similarly to `ServoSendFrame` but instead of creating it with our parameters we pass a `can_frame` struct to it to extract the information from it.
-:::note
-ServoRecvFrame will not construct if the can_id field doesnt contain `0x29` in bits 29->21
-:::
+<Callout type="info" title="Note">
+    ServoRecvFrame will not construct if the can_id field doesnt contain `0x29` in bits 29->21
+</Callout>
 
 ```cpp
 class ServoRecvFrame : public Frame {

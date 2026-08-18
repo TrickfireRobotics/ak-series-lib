@@ -2,6 +2,7 @@
     "$schema": "https://docs.trickfirerobotics.com/docs.config.schema.json",
     "name": "AK Series Driver",
     "description": "CubeMars AK Series drivers",
+    "icon": "Disc2",
     "sidebar": [
         {
             "label": "Setup",
