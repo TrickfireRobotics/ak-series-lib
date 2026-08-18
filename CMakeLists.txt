@@ -23,6 +23,7 @@ target_sources(ak_series_lib
   src/can/MIT_frame.cpp
   src/can/Servo_frame.cpp
   src/can/comms.cpp
+  src/AKSeries.cpp
 )
 
 target_compile_features(ak_series_lib PUBLIC cxx_std_17)
@@ -55,6 +56,7 @@ if (BUILD_TESTING)
     tests/can/ServoFrameTests.cpp
     tests/can/MitFrameTests.cpp
     tests/can/CommsTest.cpp
+    tests/AKSeriesTests.cpp
 	)
 	set(AK_SERIES_TESTS ak_series_lib GTest::gtest_main)
 	target_link_libraries(run_tests PUBLIC ${AK_SERIES_TESTS})
