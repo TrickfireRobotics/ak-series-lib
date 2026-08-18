@@ -53,10 +53,10 @@ Each has two overloads:
 - Pass a `const MotorRunLimits *` to supply custom limits instead (e.g. a derated motor, or a
   model that isn't in the table).
 
-:::caution
-The `MotorRunLimits *` overload stores the pointer — it does not copy the struct. The
-`MotorRunLimits` object must outlive every `Motor` created from it.
-:::
+<Callout type="warning" title="Caution">
+    The `MotorRunLimits *` overload stores the pointer — it does not copy the struct. The
+    `MotorRunLimits` object must outlive every `Motor` created from it.
+</Callout>
 
 Passing `nullptr` as the limits pointer throws `std::invalid_argument`.
 
@@ -93,10 +93,10 @@ Returns `std::nullopt` on a socket timeout or read error, the same convention as
 holds a copy of that pointer, so the socket stays alive as long as any `Motor` (or another
 `AKSeriesInterface` handle) still references it.
 
-:::note
-The destructor's bookkeeping — refusing to tear down while `Motor` objects are still alive — is
-being reworked, so don't rely on it catching a dangling `Motor` today.
-:::
+<Callout type="info" title="Note">
+    The destructor's bookkeeping — refusing to tear down while `Motor` objects are still alive —
+    is being reworked, so don't rely on it catching a dangling `Motor` today.
+</Callout>
 
 Copy and move construction/assignment are declared so multiple `AKSeriesInterface` handles can
 share one underlying bus, but the definitions aren't implemented yet.
@@ -161,14 +161,14 @@ Each method builds the matching `ServoSendFrame` (see [CAN Layer](../can-layer/)
 | `sendPositionAndVelo` | position → `±limits.pos`, speed → `±limits.speed`; acceleration is **not** clamped by this layer                                 |
 | `sendOrigin`          | not clamped — only `0`/`1` are valid; anything else throws `std::invalid_argument` from `ServoSendFrame::setOrigin`              |
 
-:::caution
-`sendDutyCycle` clamps against `limits.torque` (an Amps limit), not a dedicated duty-cycle bound —
-there isn't one in `MotorRunLimits` yet. Treat this as a placeholder.
-:::
+<Callout type="warning" title="Caution">
+    `sendDutyCycle` clamps against `limits.torque` (an Amps limit), not a dedicated duty-cycle
+    bound — there isn't one in `MotorRunLimits` yet. Treat this as a placeholder.
+</Callout>
 
 ```cpp
 hip.sendRPM(15.0f);      // clamped to ±hipLimits.speed
 hip.sendPosition(90.0f); // clamped to ±hipLimits.pos
 ```
 
-<!-- TODO: keep the clamp table in sync with src/AKSeries.cpp as the limit-checking logic evolves -->
+{/* TODO: keep the clamp table in sync with src/AKSeries.cpp as the limit-checking logic evolves */}
