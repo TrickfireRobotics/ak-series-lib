@@ -43,8 +43,9 @@ if ! multipass exec "$VM" -- sh -c 'dpkg -s "$@" >/dev/null 2>&1' _ "${PKGS[@]}"
   echo "Provisioning $VM..."
   multipass exec "$VM" -- sudo apt-get update
   multipass exec "$VM" -- sudo apt-get install -y --no-install-recommends "${PKGS[@]}"
-  local KERNEL_TYPE = "$(multipass exec "$VM" -- uname -r)"
-  multipass exec "$VM" -- sudo apt-get install -y --no-install-recommends "linux-modules-extra-$KERNEL_TYPE"
+  KERNEL_TYPE="$(multipass exec "$VM" -- uname -r)"
+  echo "$KERNEL_TYPE"
+  multipass exec "$VM" -- sudo apt-get install -y --no-install-recommends linux-modules-extra-"$KERNEL_TYPE"
 
 fi
 
