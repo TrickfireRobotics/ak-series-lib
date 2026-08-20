@@ -15,6 +15,12 @@ x-ak-base: &ak-base
   working_dir: /home/trickfire/ak-series
   volumes:
     - ..:/home/trickfire/ak-series
+    - type: bind
+      source: ${HOME}/.ssh
+      target: /home/trickfire/.ssh
+      read_only: true
+      bind:
+        create_host_path: true
   environment:
     TZ: ${TZ:-UTC}
   privileged: true
