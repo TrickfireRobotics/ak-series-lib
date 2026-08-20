@@ -24,7 +24,8 @@
             "items": [
                 { "label": "Code Overview", "slug": "reference/overview" },
                 { "label": "CAN Layer", "slug": "reference/can-layer" },
-                { "label": "Motor Limits", "slug": "reference/motors" }
+                { "label": "Motor Limits", "slug": "reference/motors" },
+                { "label": "Motor Interface", "slug": "reference/interface" }
             ]
         }
     ]

@@ -1,34 +1,63 @@
 #!/usr/bin/env bash
 
-ls -la | grep .git >/dev/null
-if [ $? -ne 0 ]; then
-  echo "Please run script from project root"
+set -euo pipefail
+
+VM="socketcan-dev"
+REMOTE="/home/ubuntu/socketcan-testing"
+DEPS_FILE="scripts/deps.txt"
+
+if [ ! -d .git ]; then
+  echo "Please run script from project root" >&2
   exit 1
 fi
-multipass >/dev/null
-if ! [ $? -ne 0 ]; then
-  echo "Check binary exists in path before launching"
+
+if ! command -v multipass >/dev/null 2>&1; then
+  echo "multipass not found in PATH" >&2
+  exit 1
 fi
 
-# Testing should cleanup artifacts since we need to pull down a new folder each time
-# Multipass executes default from home directory
-#
-multipass exec socketcan-dev -d /home/ubuntu -- sudo rm -rf socketcan-testing >/dev/null 2>&1
+if [ ! -f "$DEPS_FILE" ]; then
+  echo "Missing $DEPS_FILE" >&2
+  exit 1
+fi
 
-multipass exec socketcan-dev -- mkdir socketcan-testing
-multipass transfer -r . socketcan-dev:/home/ubuntu/socketcan-testing/
-multipass exec socketcan-dev -d /home/ubuntu/socketcan-testing/ -- sudo rm -rf build
-multipass exec socketcan-dev -d /home/ubuntu/socketcan-testing/ -- cmake -S . -B build -DSETUP_TEST_IFNAME=ON -DBUILD_TESTING=ON
-multipass exec socketcan-dev -d /home/ubuntu/socketcan-testing/build/ -- make
-multipass exec socketcan-dev -d /home/ubuntu/socketcan-testing/build/ -- sudo ctest
+PKGS=()
+while IFS= read -r line; do
+  case "$line" in
+  '' | \#*) continue ;;
+  esac
+  PKGS+=("$line")
+done <"$DEPS_FILE"
 
-if [[ $? != 0 ]]; then
-  multipass exec socketcan-dev -- sudo ip link add dev vcan_test type vcan
-  if [[ $? != 0 ]]; then
-    multipass exec socketcan-dev -- sudo ip link delete vcan_test
-    sudo ctest
-  else
-    multipass exec socketcan-dev -- sudo ip link delete vcan_test
-    multipass exec socketcan-dev -d /home/ubuntu/socketcan-testing/build/Testing/Temporary -- cat LastTest.log
-  fi
+if [ ${#PKGS[@]} -eq 0 ]; then
+  echo "No packages listed in $DEPS_FILE" >&2
+  exit 1
+fi
+
+vm_count="$(multipass list --format csv | tail -n +2 | cut -d, -f1 | grep -cx "$VM" || true)"
+if [ "$vm_count" -eq 0 ]; then
+  multipass launch 24.04 --name "$VM"
+fi
+
+if ! multipass exec "$VM" -- sh -c 'dpkg -s "$@" >/dev/null 2>&1' _ "${PKGS[@]}"; then
+  echo "Provisioning $VM..."
+  multipass exec "$VM" -- sudo apt-get update
+  multipass exec "$VM" -- sudo apt-get install -y --no-install-recommends "${PKGS[@]}"
+  KERNEL_TYPE="$(multipass exec "$VM" -- uname -r)"
+  echo "$KERNEL_TYPE"
+  multipass exec "$VM" -- sudo apt-get install -y --no-install-recommends linux-modules-extra-"$KERNEL_TYPE"
+
+fi
+
+multipass exec "$VM" -d /home/ubuntu -- sudo rm -rf socketcan-testing
+multipass exec "$VM" -- mkdir -p socketcan-testing
+multipass transfer -r . "$VM:$REMOTE/"
+multipass exec "$VM" -d "$REMOTE" -- sudo rm -rf build
+
+multipass exec "$VM" -d "$REMOTE" -- cmake -S . -B build -DSETUP_TEST_IFNAME=ON -DBUILD_TESTING=ON
+multipass exec "$VM" -d "$REMOTE/build" -- make
+
+if ! multipass exec "$VM" -d "$REMOTE/build" -- sudo ctest --output-on-failure; then
+  multipass exec "$VM" -d "$REMOTE/build/Testing/Temporary" -- cat LastTest.log || true
+  exit 1
 fi

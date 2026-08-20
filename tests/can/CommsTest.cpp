@@ -77,7 +77,7 @@ TEST_F(CanInterfaceTests, CanInterfaceTesting) {
   ::write(socketFD, &f, sizeof(can_frame));
   auto recv = writer.sendAndRead(cmp);
   ASSERT_TRUE(recv.successful);
-  ASSERT_TRUE(std::memcmp(&recv.success, &cmp, sizeof(can_frame)) == 0);
+  ASSERT_TRUE(std::memcmp(&recv.value, &cmp, sizeof(can_frame)) == 0);
 
   recv = writer.sendAndRead(f);
   ASSERT_TRUE(!recv.successful);
@@ -85,7 +85,7 @@ TEST_F(CanInterfaceTests, CanInterfaceTesting) {
 
   ::write(socketFD, &f, sizeof(can_frame));
   recv = writer.read();
-  ASSERT_TRUE(std::memcmp(&recv.success, &f, sizeof(can_frame)) == 0);
+  ASSERT_TRUE(std::memcmp(&recv.value, &f, sizeof(can_frame)) == 0);
 
   recv = writer.read();
   ASSERT_TRUE(!recv.successful);
@@ -108,7 +108,7 @@ TEST_F(CanInterfaceTests, NonBlockingTesting) {
   ::write(socketFD, &f, sizeof(can_frame));
   auto recv = writer.sendAndRead(cmp);
   ASSERT_TRUE(recv.successful);
-  ASSERT_TRUE(std::memcmp(&recv.success, &cmp, sizeof(can_frame)) == 0);
+  ASSERT_TRUE(std::memcmp(&recv.value, &cmp, sizeof(can_frame)) == 0);
 
   recv = writer.sendAndRead(f);
   ASSERT_TRUE(!recv.successful);
@@ -116,7 +116,7 @@ TEST_F(CanInterfaceTests, NonBlockingTesting) {
 
   ::write(socketFD, &f, sizeof(can_frame));
   recv = writer.read();
-  ASSERT_TRUE(std::memcmp(&recv.success, &f, sizeof(can_frame)) == 0);
+  ASSERT_TRUE(std::memcmp(&recv.value, &f, sizeof(can_frame)) == 0);
 
   recv = writer.read();
   ASSERT_TRUE(!recv.successful);

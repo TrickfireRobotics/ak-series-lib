@@ -1,13 +1,14 @@
 
 #ifndef __TEST_AK_SERIES
 #define __TEST_AK_SERIES
-#include "motors/MotorLimits.hpp"
+#include "motors/Motors.hpp"
 #pragma once
 #include "Errors.hpp"
 #include "can/MIT_frame.hpp"
 #include "can/Servo_frame.hpp"
 #include "can/comms.hpp"
 #include "can/frame.hpp"
+#include <AKSeries.hpp>
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -55,6 +56,21 @@ protected:
 public:
   CanInterfaceTests() {}
   ~CanInterfaceTests() = default;
+  void SetUp() override;
+  void TearDown() override {};
+};
+
+class MotorInterfaceTests : public testing::Test {
+protected:
+  std::string canIfName;
+  AKSeries::AKSeriesInterface interface;
+  int socketFD;
+
+public:
+  MotorInterfaceTests()
+      : canIfName{std::getenv("SETUP_TEST_IFNAME")},
+        interface{AKSeries::AKSeriesInterface(canIfName.c_str())} {}
+  ~MotorInterfaceTests() = default;
   void SetUp() override;
   void TearDown() override {};
 };

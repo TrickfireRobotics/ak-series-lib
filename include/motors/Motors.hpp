@@ -3,8 +3,19 @@
 #pragma once
 
 #include <stdint.h>
+struct MitRunSettings {
+  float position{};
+  float speed{};
+  float current{};
+  float KP{};
+  float KD{};
+  MitRunSettings(float pos, float sp, float curr, float P, float D)
+      : position{pos}, speed{sp}, current{curr}, KP{P}, KD{D} {}
+  MitRunSettings() : position{0.0f}, speed{0.0f}, current{0.0f}, KP{0.0f}, KD{0.0f} {}
+};
+
 // Each motor has different max run settings
-enum class AkSeriesMotors : uint8_t {
+enum class AKSeriesMotor : uint8_t {
   AK10_9 = 0,
   AK60_6,
   AK70_10,
