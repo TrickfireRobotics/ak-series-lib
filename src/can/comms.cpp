@@ -2,9 +2,9 @@
 #include "Errors.hpp"
 #include <cerrno>
 #include <cstdio>
-#include <exception>
 
-using AKSeries::Expected, AKSeries::CanInterface;
+using AKSeries::CanInterface;
+using AKSeries::Expected;
 
 CanInterface::CanInterface(const char *canif) {
   auto canID = CanInterface::initCan(canif);
@@ -13,10 +13,9 @@ CanInterface::CanInterface(const char *canif) {
     return;
   }
   canIF = canif;
-  canFD = canID.success;
+  canFD = canID.value;
 }
 
-// TODO implement proper return values
 Expected<int, CanIOError> CanInterface::initCan(const char *str) {
   int s = ::socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (s < 0) {

@@ -52,11 +52,11 @@ This should ONLY be used internally in the library
 
 template <typename T, typename U> struct Expected {
   union {
-    T success;
+    T value;
     U error;
   };
   bool successful;
-  Expected(T val) : success{val}, successful{true} {};
+  Expected(T val) : value{val}, successful{true} {};
   Expected(U val) : error{val}, successful{false} {};
 };
 } // namespace AKSeries

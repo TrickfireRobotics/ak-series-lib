@@ -63,7 +63,7 @@ std::optional<MitRecvFrame> MitModeMotor::sendAndRecieve(MitRunSettings &setting
     std::fprintf(stderr, "IOError in the received can frame, logging");
     return std::nullopt;
   }
-  return MitRecvFrame(recv.success, *this->mLims);
+  return MitRecvFrame(recv.value, *this->mLims);
 }
 void MitModeMotor::send(MitRunSettings &settings) {
   MitSendFrame f(static_cast<canid_t>(mCanId), *this->mLims, &settings);
@@ -174,5 +174,5 @@ std::optional<ServoRecvFrame> AKSeriesInterface::readServoFrame() {
     std::fprintf(stderr, "IOError in the received can frame, logging");
     return std::nullopt;
   }
-  return ServoRecvFrame(f.success);
+  return ServoRecvFrame(f.value);
 }

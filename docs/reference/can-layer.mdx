@@ -269,11 +269,11 @@ void setPollTimeout(uint32_t pTime) { pollTime = pTime; };
 ```cpp
 template <typename T, typename U> struct Expected {
   union {
-    T success;
+    T value;
     U error;
   };
   bool successful;
-  Expected(T val) : success{val}, successful{true} {};
+  Expected(T val) : value{val}, successful{true} {};
   Expected(U val) : error{val}, successful{false} {};
 };
 ```
@@ -306,7 +306,7 @@ auto interface = CanWriter("can0");
 auto recv =  interface.sendAndRead(f);
 //Fake functions
 if (recv.succesful) {
-    doSomething(recv.success);
+    doSomething(recv.value);
 } else {
     logError(recv.error);
 }
@@ -317,7 +317,7 @@ interface.send(f);
 //Read the can frame
 auto frame = interface.read();
 if (recv.succesful) {
-    doSomething(recv.success);
+    doSomething(recv.value);
 } else {
     logError(recv.error);
 }
