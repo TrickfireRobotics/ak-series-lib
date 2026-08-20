@@ -22,33 +22,37 @@ RUN ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime && \
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
-        python3 \
-        python3-pip \
-        python3-venv \
-        build-essential \
-        cmake \
-        ninja-build \
-        pkg-config \
-        libsocketcan-dev \
-        libgtest-dev \
-        libgmock-dev \
-        iproute2 \
-        kmod \
-        can-utils \
-        sudo \
-        curl \
-        ca-certificates \
-        clangd \
-        npm \ #Needed for bashls, dont remove
-        clang-format \
-        git && \
+    python3 \
+    python3-pip \
+    python3-venv \
+    build-essential \
+    cmake \
+    ninja-build \
+    pkg-config \
+    libsocketcan-dev \
+    libgtest-dev \
+    libgmock-dev \
+    iproute2 \
+    kmod \
+    can-utils \
+    sudo \
+    curl \
+    ca-certificates \
+    clangd \
+    npm \
+    clang-format \
+    git && \
     rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g bash-language-server
+
 # --------------------------------------
 # User
 
-RUN useradd trickfire --shell /bin/bash --create-home --no-log-init && \
+RUN (userdel -r ubuntu 2>/dev/null || true) && \
+    (groupdel ubuntu 2>/dev/null || true) && \
+    groupadd --gid ${USER_GID} trickfire && \
+    useradd trickfire --uid 1000 --gid 1000 --shell /bin/bash --create-home --no-log-init && \
     usermod -aG video trickfire
 COPY docker/container.bashrc /home/trickfire/.bashrc
 RUN echo "trickfire ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/user
