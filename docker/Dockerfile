@@ -48,7 +48,10 @@ RUN npm install -g bash-language-server
 # --------------------------------------
 # User
 
-RUN useradd trickfire --shell /bin/bash --create-home --no-log-init && \
+RUN (userdel -r ubuntu 2>/dev/null || true) && \
+    (groupdel ubuntu 2>/dev/null || true) && \
+    groupadd --gid ${USER_GID} trickfire && \
+    useradd trickfire --uid 1000 --gid 1000 --shell /bin/bash --create-home --no-log-init && \
     usermod -aG video trickfire
 COPY docker/container.bashrc /home/trickfire/.bashrc
 RUN echo "trickfire ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/user
