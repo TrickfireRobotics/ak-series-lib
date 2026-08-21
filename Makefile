@@ -11,4 +11,4 @@ clean:
 container-build:
 	devcontainer exec --workspace-folder . -- cmake -S . -B build -DSETUP_TEST_IFNAME=ON -DBUILD_TESTING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 build:
-	#To be done, when the ros package is complete and final build can be decided
+	echo "To be done, when the ros package is complete and final build can be decided"
