@@ -5,7 +5,7 @@ on:
 jobs:
   Cpp:
     runs-on: ubuntu-latest
-    Cpp:
+    steps:
       - uses: actions/checkout@v7
       - name: Check C++ formatting
         uses: jidicula/clang-format-action@v4.18.0
