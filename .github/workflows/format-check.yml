@@ -1,0 +1,14 @@
+name: Style check
+on:
+  push:
+  pull_request:
+jobs:
+  Cpp:
+    runs-on: ubuntu-latest
+    Cpp:
+      - uses: actions/checkout@v7
+      - name: Check C++ formatting
+        uses: jidicula/clang-format-action@v4.18.0
+        with:
+          clang-format-version: "18"
+          check-path: "chrono"
