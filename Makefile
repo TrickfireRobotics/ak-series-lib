@@ -1,4 +1,10 @@
 .PHONY: clean container format test build container-build
+
+build: 	
+	cmake -S . -B build 
+	cmake --build build
+	cmake --install build 
+
 container:
 	devcontainer up
 	devcontainer exec --workspace-folder . bash
@@ -10,5 +16,4 @@ clean:
 	rm -rf ./build
 container-build:
 	devcontainer exec --workspace-folder . -- cmake -S . -B build -DSETUP_TEST_IFNAME=ON -DBUILD_TESTING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-build:
-	echo "To be done, when the ros package is complete and final build can be decided"
+

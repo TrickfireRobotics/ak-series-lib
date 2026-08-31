@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.23)
 
-project(ak_series LANGUAGES CXX)
+project(ak-series LANGUAGES CXX VERSION 0.0.1)
 
 option(SETUP_TEST_IFNAME "Set-up the test VCAN interface automatically" OFF)
 option(PYTHON_BINDINGS "Build python bindings" OFF)
 option(BUILD_TESTING "Builds test folder, only use for testing" OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(ament_cmake QUIET)
+if (ament_cmake_FOUND)
+  message(STATUS "Ament cmake detected.")
+endif()
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
   message(FATAL_ERROR "SocketCAN is Linux-only; this project cannot be built on ${CMAKE_SYSTEM_NAME}.")
@@ -16,7 +20,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(SocketCAN REQUIRED IMPORTED_TARGET libsocketcan)
 
 add_library(ak_series_lib STATIC)
-add_library(ak_series::ak_series_lib ALIAS ak_series_lib)
+add_library(ak-series::ak_series_lib ALIAS ak_series_lib)
 
 target_sources(ak_series_lib
   PRIVATE
@@ -46,7 +50,6 @@ install(TARGETS ak_series_lib
 
 
 if (BUILD_TESTING)
-  #Lets us define what happens and how tests are run
   enable_testing()
 	find_package(GTest REQUIRED)
   include(GoogleTest)
@@ -64,9 +67,6 @@ if (BUILD_TESTING)
 	if (SETUP_TEST_IFNAME)
 	  set(VCAN_IFNAME "vcan_test")
 
-	  # Generate CTestCustom.cmake at the top of the build tree so that
-	  # ctest actually picks up the CTEST_CUSTOM_PRE_TEST/POST_TEST commands
-	  # that bring the virtual CAN interface up/down around the test run.
 	  configure_file(
 	    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CTestCustom.cmake.in
 	    ${CMAKE_BINARY_DIR}/CTestCustom.cmake
@@ -74,8 +74,6 @@ if (BUILD_TESTING)
 	  )
 	endif()
 
-  # ENVIRONMENT is what actually reaches each test process; the pre-test
-  # shell's own exports do not, so the interface name is injected here.
   gtest_discover_tests(run_tests
     TEST_SUFFIX .noargs
     TEST_LIST noArgsTests
@@ -91,6 +89,38 @@ if (BUILD_TESTING)
 endif()
 
 
+if (ament_cmake_FOUND)
+  ament_export_targets(${PROJECT_NAME}Targets
+    HAS_LIBRARY_TARGET
+  )
+  ament_package()
+else()
+  include(GNUInstallDirs)
+  set(INSTALL_CMAKE_CONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
+  install(EXPORT ${PROJECT_NAME}Targets
+    NAMESPACE ${PROJECT_NAME}::
+    FILE ${PROJECT_NAME}Targets.cmake
+    DESTINATION ${INSTALL_CMAKE_CONFIG_DIR}
+  )
+  include(CMakePackageConfigHelpers)
+  configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    INSTALL_DESTINATION ${INSTALL_CMAKE_CONFIG_DIR}
+    NO_SET_AND_CHECK_MACRO
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO
+  )
+  write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+  )
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    DESTINATION ${INSTALL_CMAKE_CONFIG_DIR}
+  )
+endif()
+
+
 target_link_libraries(ak_series_lib PUBLIC PkgConfig::SocketCAN)
-
-
