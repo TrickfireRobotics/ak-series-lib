@@ -1,10 +1,14 @@
-.PHONY: clean container format test build container-build
+.PHONY: clean container format test build container-build python
 
 build: 	
 	cmake -S . -B build 
 	cmake --build build
-	cmake --install build 
-
+	sudo cmake --install build 
+#Alternate python build
+python:
+	cmake -S . -B build -DPYTHON_BINDINGS=ON
+	cmake --build build
+	sudo cmake --install build 
 container:
 	devcontainer up
 	devcontainer exec --workspace-folder . bash

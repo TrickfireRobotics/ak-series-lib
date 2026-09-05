@@ -1,0 +1,5 @@
+# The compiled extension is copied here by CMake's POST_BUILD step
+# (see litgen_setup_module in python/litgen_cmake.cmake) -- not source.
+_ak_series*.so
+_ak_series*.pyd
+__pycache__/

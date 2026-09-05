@@ -42,6 +42,8 @@ static const char *errCodeToStr(ErrorCode s) {
     return "Mosfet over temperature";
   case (ErrorCode::MotorStall):
     return "Motor stall";
+  default:
+    return "INVALID_ERROR_CODE";
   };
 }
 

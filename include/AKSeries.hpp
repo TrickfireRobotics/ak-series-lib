@@ -40,6 +40,7 @@ class MitModeMotor : public Motor {
 public:
   [[nodiscard]] std::optional<MitRecvFrame> sendAndRecieve(MitRunSettings &);
   void send(MitRunSettings &);
+  MitModeMotor() = delete;
 };
 
 class ServoModeMotor : public Motor {
@@ -58,6 +59,7 @@ public:
   void sendPosition(float pos);
   void sendOrigin(uint8_t origin_mode);
   void sendPositionAndVelo(float position, float speed, float accel);
+  ServoModeMotor() = delete;
 };
 
 class AKSeriesInterface {
